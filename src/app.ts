@@ -2,5 +2,5 @@
 
 import {IIITService} from "./server";
 
-let iiitservice:  IIITService = new IIITService();
+const iiitservice: IIITService = new IIITService();
 iiitservice.startServer();

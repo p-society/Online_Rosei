@@ -16,6 +16,7 @@
   "author": "Kautilya Tripathi <tripathi.kautilya@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
