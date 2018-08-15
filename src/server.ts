@@ -65,7 +65,8 @@ export class IIITService {
       res.send("Dude this is just home page");
     });
 
-    this.app.use("/user", UserRoutes);
+    const userRoutes: UserRoutes = new UserRoutes();
+    this.app.use("/user", userRoutes.getRoutes());
   }
 
   private initServices(): Promise<boolean> {

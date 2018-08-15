@@ -3,8 +3,9 @@ import {Response} from "../models";
 
 export class BaseRoutes {
   protected router: express.Router = express.Router();
+  protected baseUri: string = "/base";
 
-  public contructor() {
+  public constructor() {
     this.initRoutes();
   }
 
@@ -13,7 +14,7 @@ export class BaseRoutes {
   }
 
   protected initRoutes() {
-    throw new Error("This is not implemeneted please check again.");
+    throw new Error("Not Implemented");
   }
 
   protected completeRequest(promise: Promise<Response>, res: express.Response): void {
