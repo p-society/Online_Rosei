@@ -11,5 +11,3 @@ jspm_packages
 /tmp/
 /dist/
 /typings/
-
-docker-compose.yml
