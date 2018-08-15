@@ -6,7 +6,7 @@
 
 ### TO-DO
 
-- [ ] Add docker configuration with mongodb
+- [x] Add docker configuration with mongodb
 - [ ] Add server
 - [ ] Add routes
 - [ ] Add database
@@ -24,7 +24,7 @@
 * `npm` >= 5.5.1
 * `TypeScript` >= 3.0.1
 
-### How to use
+### How to use(using docker)
 
 ```
 clone repository
@@ -35,6 +35,15 @@ chmod 777 dockerCompose.sh
 Now docker image is created, run your docker image by command below
 
 docker-compose up
+```
+
+### Use without docker
+
+```
+clone
+cd to project
+npm i
+npm start
 ```
 
 Will update soon
