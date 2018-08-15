@@ -1,0 +1,4 @@
+apps:
+  - script   : 'app.js'
+    name     : 'IIIT_BBSR rosie'
+    node_args:  '--inspect=0.0.0.0:5858'
