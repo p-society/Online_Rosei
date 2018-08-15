@@ -6,6 +6,7 @@ import bluebird = require("bluebird");
 import bodyParser = require("body-parser");
 import cors = require("cors");
 import express = require("express");
+import * as helmet from "helmet";
 import mongoose = require("mongoose");
 import {
   UserRoutes,
@@ -48,6 +49,7 @@ export class IIITService {
   private initExpress() {
       // create Express
     this.app = express();
+    this.app.use(helmet());
     this.app.use(cors());
       // make express use the bodyParser for json middleware
     this.app.use(bodyParser.json({}));

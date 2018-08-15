@@ -5,6 +5,12 @@ import mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
 export const UserSchema = new Schema({
+  collegeId: {
+    type: String,
+    trim: true,
+    unique: true,
+    select: true,
+  },
   email: {
     type: String,
     trim: true,
@@ -27,7 +33,7 @@ export const UserSchema = new Schema({
   active: {
     type: Boolean,
     select: true,
-    default: true,
+    default: false,
   },
 }, {
   timestamps: {},

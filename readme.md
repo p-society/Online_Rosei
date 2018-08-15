@@ -7,9 +7,9 @@
 ### TO-DO
 
 - [x] Add docker configuration with mongodb
-- [ ] Add server
+- [x] Add server
+- [x] Add database
 - [ ] Add routes
-- [ ] Add database
 - [ ] Add login, signup pages
 - [ ] Show profile page
 - [ ] Add forgot password option
@@ -36,14 +36,3 @@ Now docker image is created, run your docker image by command below
 
 docker-compose up
 ```
-
-### Use without docker
-
-```
-clone
-cd to project
-npm i
-npm start
-```
-
-Will update soon

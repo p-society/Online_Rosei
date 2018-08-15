@@ -3,7 +3,6 @@ import {Response} from "../models";
 
 export class BaseRoutes {
   protected router: express.Router = express.Router();
-  protected baseUri: string = "/base";
 
   public constructor() {
     this.initRoutes();
