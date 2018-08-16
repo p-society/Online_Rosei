@@ -3,6 +3,7 @@
 ### What is this repository for?
 
 * This repository contains code for online mess system for IIIT_BBSR students.
+* This is backend for online mess.
 
 ### TO-DO
 

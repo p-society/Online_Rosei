@@ -9,6 +9,7 @@ import express = require("express");
 import * as helmet from "helmet";
 import mongoose = require("mongoose");
 import {
+  AuthRoutes,
   UserRoutes,
 } from "./routes";
 import {Config} from "./shared";
@@ -69,6 +70,10 @@ export class IIITService {
 
     const userRoutes: UserRoutes = new UserRoutes();
     this.app.use("/user", userRoutes.getRoutes());
+
+    // auth Routes
+    const authRoutes: AuthRoutes = new AuthRoutes();
+    this.app.use("/auth", authRoutes.getRoutes());
   }
 
   private initServices(): Promise<boolean> {
