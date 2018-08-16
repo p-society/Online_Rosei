@@ -10,7 +10,8 @@
       "ter-indent": [true, 2],
       "no-console": false,
       "only-arrow-functions": [false],
-      "max-classes-per-file": [true, 5]
+      "max-classes-per-file": [true, 5],
+      "no-shadowed-variable": false
     },
     "rulesDirectory": []
 }

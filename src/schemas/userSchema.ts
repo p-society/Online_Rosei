@@ -30,6 +30,10 @@ export const UserSchema = new Schema({
     select: true,
     default: "user",
   },
+  tokenEmailToSend: {
+    type: String,
+    select: false,
+  },
   active: {
     type: Boolean,
     select: true,
