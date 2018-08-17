@@ -2,17 +2,17 @@
 
 ### What is this repository for?
 
-* This repository contains code for online mess system for IIIT_BBSR students.
-* This is backend for online mess.
+* This repository contains **backend** code for online mess system for IIIT_BBSR students.
+* Front End code can he found [here](https://github.com/p-society/Online_Rosie_FrontEnd)
 
 ### TO-DO
 
 - [x] Add docker configuration with mongodb
 - [x] Add server
 - [x] Add database
-- [ ] Add routes
-- [ ] Add login, signup pages
-- [ ] Show profile page
+- [x] Add login, signup pages
+- [x] Show profile page
+- [ ] Add all routes
 - [ ] Add forgot password option
 - [ ] Add menu
 - [ ] Add tests

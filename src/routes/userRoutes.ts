@@ -1,9 +1,11 @@
+import bcrypt = require("bcrypt-nodejs");
 import * as express from "express";
 import jwt = require("jsonwebtoken");
 import {model} from "mongoose";
 import queryString = require("query-string");
 import {BaseRoutes, SendGridContent, SendGridEmail, SendGridMail, SendGridService} from "../classes";
 import {IUser} from "../interfaces";
+import {isAuthenticated} from "../middleware";
 import {Response} from "../models";
 import {UserSchema} from "../schemas";
 import {Config} from "../shared";
@@ -12,10 +14,12 @@ const User = model("User", UserSchema);
 
 export class UserRoutes extends BaseRoutes {
   private UserModel = model("User", UserSchema);
-  private GridService = new SendGridService(process.env.secret);
+  private GridService = new SendGridService("process.env.secret");
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").get((req, res) => this.activateUser(req, res));
+    this.router.route("/profile/:id").get(isAuthenticated, (req, res) => this.profileUser(req, res));
+    this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
   }
 
   private registerUser(req: express.Request, res: express.Response) {
@@ -119,6 +123,68 @@ export class UserRoutes extends BaseRoutes {
           success: false,
         }));
       }
+    });
+
+    this.completeRequest(promise, res);
+  }
+
+  private profileUser(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+      this.UserModel.findOne({_id: req.params.id}).then((user) => {
+        if (user === null) {
+          resolve(new Response(200, "Sorry no user found", {
+            success: false,
+          }));
+        } else {
+          resolve(new Response(200, "Successful response", {
+            success: true,
+            user,
+          }));
+        }
+      }).catch((error) => reject(new Response(500, "Unable to get user", {
+        error: error.toString(),
+      })));
+    });
+
+    this.completeRequest(promise, res);
+  }
+
+  private settingUser(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+      const password = escape(req.body.password);
+      const confirmPassword = escape(req.body.confirmPassword);
+      if (password !== confirmPassword) {
+        resolve(new Response(200, "Your passwords do not match", {
+          success: false,
+        }));
+      }
+
+      if (password === "undefined" || confirmPassword === "undefined") {
+        resolve(new Response(200, "Please enter password", {
+          success: false,
+        }));
+      }
+      if (password.length < 6) {
+        resolve(new Response(200, "Password should be minimum 6 characters long", {
+          success: false,
+        }));
+      }
+      this.UserModel.findOne({_id: req.params.id}).then((user) => {
+        if (user === null) {
+          resolve(new Response(200, "Sorry no user found", {
+            success: false,
+          }));
+        } else {
+          req.user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+          req.user.save(function(err) {
+            resolve(new Response(200, "Successfully changed settings", {
+                success: true,
+              }));
+          });
+        }
+      }).catch((error) => reject(new Response(500, "Unable to get user", {
+        error: error.toString(),
+      })));
     });
 
     this.completeRequest(promise, res);
