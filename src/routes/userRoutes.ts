@@ -14,7 +14,7 @@ const User = model("User", UserSchema);
 
 export class UserRoutes extends BaseRoutes {
   private UserModel = model("User", UserSchema);
-  private GridService = new SendGridService("process.env.secret");
+  private GridService = new SendGridService("");
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
@@ -107,6 +107,10 @@ export class UserRoutes extends BaseRoutes {
             resolve(new Response(200, "Sorry cannot verify email as you are trying to act smart", {
               success: false,
             }));
+          } else if (user.active === true) {
+            resolve(new Response(200, "Don't try to be smart your account is already active", {
+              success: false,
+            }));
           } else {
             if (URLToken === user.tokenEmailToSend) {
               User.update({email: user.email}, {$set: { active: true }}).then((user: any) => {
@@ -148,7 +152,7 @@ export class UserRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private settingUser(req: express.Request, res: express.Response) {
+  private settingUser(req: express.Request , res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       const password = escape(req.body.password);
       const confirmPassword = escape(req.body.confirmPassword);
@@ -168,18 +172,19 @@ export class UserRoutes extends BaseRoutes {
           success: false,
         }));
       }
-      this.UserModel.findOne({_id: req.params.id}).then((user) => {
+      this.UserModel.findOne({_id: req.params.id}).then((user: any) => {
         if (user === null) {
           resolve(new Response(200, "Sorry no user found", {
             success: false,
           }));
         } else {
-          req.user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-          req.user.save(function(err) {
-            resolve(new Response(200, "Successfully changed settings", {
-              success: true,
-            }));
-          });
+          User.update({email: user.email}, {$set: {
+            password: bcrypt.hashSync(password, bcrypt.genSaltSync(8), null)}})
+            .then((user: any) => {
+              resolve(new Response(200, "Successfully changed settings", {
+                success: true,
+              }));
+            });
         }
       }).catch((error) => reject(new Response(500, "Unable to get user", {
         error: error.toString(),

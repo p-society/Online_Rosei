@@ -7,7 +7,12 @@ import {Config} from "../shared";
 
 const User = model("User", UserSchema);
 
-export const isAuthenticated = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+interface Authenticated {
+  user;
+}
+
+export const isAuthenticated = (req: express.Request & Authenticated,
+                                res: express.Response, next: express.NextFunction) => {
 
   const token = req.headers["x-access-token"];
   if (!token) {

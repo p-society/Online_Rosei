@@ -11,7 +11,8 @@
       "no-console": false,
       "only-arrow-functions": [false],
       "max-classes-per-file": [true, 5],
-      "no-shadowed-variable": false
+      "no-shadowed-variable": false,
+      "interface-name": [false]
     },
     "rulesDirectory": []
 }
