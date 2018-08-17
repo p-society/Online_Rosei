@@ -4,7 +4,7 @@
   "description": "Online rosie system for IIIT BBSR students",
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc",
+    "build": "gulp",
     "dev": "ts-node ./src/server.ts",
     "test": "tslint -c tslint.json 'src/**/*.ts' --fix",
     "start": "gulp && cd dist/ && node --inspect=8990 app.js"

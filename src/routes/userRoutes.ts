@@ -17,7 +17,7 @@ export class UserRoutes extends BaseRoutes {
   private GridService = new SendGridService("process.env.secret");
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
-    this.router.route("/activate").get((req, res) => this.activateUser(req, res));
+    this.router.route("/activate").post((req, res) => this.activateUser(req, res));
     this.router.route("/profile/:id").get(isAuthenticated, (req, res) => this.profileUser(req, res));
     this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
   }
@@ -55,7 +55,8 @@ export class UserRoutes extends BaseRoutes {
             new SendGridContent("text/html", `
             <div style="background-color:#2E4053;color:#F1948A;font-style:
                 italic;width:800px;font-size:24px;padding:20px;">
-                Click to verify your email : <a href="http://localhost:3000/user/activate/?${queryies}"
+                To book coupon online you have to verify your email
+                : <a href="http://localhost:4200/activateUser/?${queryies}"
                 style="color:#FAE5D3">Click to verify</a>
                 <br/><br/>
                 Please verify in 1 hour before it expires.
@@ -95,8 +96,8 @@ export class UserRoutes extends BaseRoutes {
   private activateUser(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       try {
-        const URLEmail = escape(req.query.email);
-        const URLToken = escape(req.query.tokenEmailToSend);
+        const URLEmail = escape(req.body.email);
+        const URLToken = escape(req.body.tokenEmailToSend);
         User.findOne({email: URLEmail}, {active: true}).select("tokenEmailToSend").then((user: any) => {
           if (user === null) {
             resolve(new Response(200, "Sorry cannot verify email as no user found", {
@@ -107,10 +108,8 @@ export class UserRoutes extends BaseRoutes {
               success: false,
             }));
           } else {
-            const decoded = jwt.verify(escape(req.query.tokenEmailToSend), Config.secretKeys.jwtSecret);
-            const data = decoded.data;
-            if (data === URLEmail) {
-              User.update({email: data}, {$set: { active: true }}).then((user: any) => {
+            if (URLToken === user.tokenEmailToSend) {
+              User.update({email: user.email}, {$set: { active: true }}).then((user: any) => {
                 resolve(new Response(200, "Account activated enjoy booking coupon", {
                   success: true,
                 }));
@@ -178,8 +177,8 @@ export class UserRoutes extends BaseRoutes {
           req.user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
           req.user.save(function(err) {
             resolve(new Response(200, "Successfully changed settings", {
-                success: true,
-              }));
+              success: true,
+            }));
           });
         }
       }).catch((error) => reject(new Response(500, "Unable to get user", {
