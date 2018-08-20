@@ -1,3 +1,4 @@
 export * from "./authRoutes";
 export * from "./userRoutes";
-export * from "./AdminRoutes";
+export * from "./adminRoutes";
+export * from "./couponRoutes";

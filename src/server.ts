@@ -11,6 +11,7 @@ import mongoose = require("mongoose");
 import {
   AdminRoutes,
   AuthRoutes,
+  CouponRoutes,
   UserRoutes,
 } from "./routes";
 import {Config} from "./shared";
@@ -79,6 +80,10 @@ export class IIITService {
     // admin Routes
     const adminRoutes: AdminRoutes = new AdminRoutes();
     this.app.use("/admin", adminRoutes.getRoutes());
+
+    // coupon Routes
+    const couponRoutes: CouponRoutes = new CouponRoutes();
+    this.app.use("/book", couponRoutes.getRoutes());
   }
 
   private initServices(): Promise<boolean> {
