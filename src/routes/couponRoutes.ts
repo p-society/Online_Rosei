@@ -19,6 +19,7 @@ export class CouponRoutes extends BaseRoutes {
 
   protected initRoutes() {
     this.router.route("/bookCoupon/:id").post(isAuthenticated, (req, res) => this.bookCoupon(req, res));
+    this.router.route("/getCoupon").get(isAuthenticated, (req, res) => this.getCoupon(req, res));
   }
 
   private bookCoupon(req: express.Request, res: express.Response) {
@@ -35,9 +36,13 @@ export class CouponRoutes extends BaseRoutes {
       });
       try {
         await coupon.save();
-        console.log("fuck yes");
+        resolve(new Response(200, "Successfully booked coupon", {
+          success: true,
+        }));
       } catch (err) {
-        throw new Error("unable to save activity");
+        resolve(new Response(200, "Unable to book coupon please try again later", {
+          success: false,
+        }));
       }
     });
     this.completeRequest(promise, res);
@@ -168,6 +173,27 @@ export class CouponRoutes extends BaseRoutes {
       mess1: ELEMENT_DATA1,
       mess2: ELEMENT_DATA2,
     };
+  }
+
+  private getCoupon(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
+      this.CouponModel.findOne({userId: req.user._id}).sort({createdAt: "descending"}).then((coupon: any) => {
+        if (coupon === null) {
+          resolve(new Response(200, "No coupon booked", {
+            success: false,
+          }));
+        } else {
+          const bookedCoupon = coupon.coupon[0];
+          resolve(new Response(200, "These are your latest coupons for this week", {
+            success: true,
+            bookedCoupon,
+          }));
+        }
+      }).catch((error) => reject(new Response(500, "Unable to get coupon", {
+        error: error.toString(),
+      })));
+    });
+    this.completeRequest(promise, res);
   }
 
 }

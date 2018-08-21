@@ -14,7 +14,7 @@ const User = model("User", UserSchema);
 
 export class UserRoutes extends BaseRoutes {
   private UserModel = model("User", UserSchema);
-  private GridService = new SendGridService("");
+  private GridService = new SendGridService();
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
@@ -25,10 +25,10 @@ export class UserRoutes extends BaseRoutes {
   private registerUser(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
 
-      if (req.body.collegeId === undefined || req.body.password === undefined ||
-        req.body.collegeId === null || req.body.password === null ||
-        req.body.collegeId === "" || req.body.password === "") {
-        resolve(new Response(200, "collegeId and password required", {
+      if ((req.body.collegeId === undefined || req.body.password === undefined || req.body.sex === undefined)
+        || (req.body.collegeId === null || req.body.password === null || req.body.sex === null) ||
+        (req.body.collegeId === "" || req.body.password === "" || req.body.sex === "") ) {
+        resolve(new Response(200, "Please fill all fields", {
           success: false,
         }));
       } else {
@@ -65,6 +65,7 @@ export class UserRoutes extends BaseRoutes {
                 </div>`));
             const newUser: any = new this.UserModel({
               email,
+              sex: escape(req.body.sex),
               collegeId: escape(req.body.collegeId),
               tokenEmailToSend,
             });

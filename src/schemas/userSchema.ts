@@ -17,6 +17,11 @@ export const UserSchema = new Schema({
     unique: true,
     select: true,
   },
+  sex: {
+    type: String,
+    select: true,
+    required: true,
+  },
   password: {
     type: String,
     select: false,
