@@ -1,9 +1,13 @@
 import {Document} from "mongoose";
 
-export interface ICoupontype {
+export interface ICoupontypeup {
+  createdAt: string;
+  messup: string;
+}
+
+export interface ICoupontypedown {
   createdAt: string;
   messdown: string;
-  messup: string;
 }
 
 export interface MessElement {
@@ -16,7 +20,11 @@ export interface MessElement {
 
 export interface ICoupon extends Document {
   userId: string;
-  coupon: ICoupontype[];
-
+  couponDownMess: ICoupontypedown[];
+  couponUpMess: ICoupontypeup[];
+  gender: string;
+  collegeId: string,
+  name: string;
+  
   _id: string;
 }

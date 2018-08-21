@@ -2,31 +2,35 @@ import * as express from "express";
 import jwt = require("jsonwebtoken");
 import {model} from "mongoose";
 import {BaseRoutes} from "../classes";
-import {IUser} from "../interfaces";
+import {IAdmin, ICoupon, IUser, MessElement} from "../interfaces";
 import {isAdminOrUser} from "../middleware";
 import {Response} from "../models";
-import {UserSchema} from "../schemas";
+import {AdminSchema, UserSchema, CouponSchema} from "../schemas";
 import {Config} from "../shared";
 
+const Admin = model("Admin", AdminSchema);
 const User = model("User", UserSchema);
+const Coupon = model("Coupon", CouponSchema);
 
 export class AdminRoutes extends BaseRoutes {
+  private AdminModel = model("Admin", AdminSchema);
   private UserModel = model("User", UserSchema);
+  private CouponModel = model("Coupon", CouponSchema);
 
   protected initRoutes() {
-    this.router.route("/").post((req, res) => this.postAdmin(req, res));
-    this.router.route("/:id").get(isAdminOrUser, (req, res) => this.getAdmin(req, res));
-    this.router.route("/:id/dashboard").get(isAdminOrUser, (req, res) => this.getUsers(req, res));
+    this.router.route("/register").post((req, res) => this.postAdmin(req, res));
+    this.router.route("/mess1/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForGroundMess(req, res));
+    this.router.route("/mess2/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForUpperMess(req, res));
   }
 
-  private getAdmin(req: express.Request, res: express.Response) {
+  private getUsersForUpperMess(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      User.findOne({_id: req.params.id}).then((user) => {
+      Admin.findOne({_id: req.params.id}).then((admin) => {
         resolve(new Response(200, "Successful response", {
           success: true,
-          user,
+          admin,
         }));
-      }).catch((error) => reject(new Response(500, "Unable to get user", {
+      }).catch((error) => reject(new Response(500, "Unable to get admin", {
         error: error.toString(),
       })));
     });
@@ -37,29 +41,31 @@ export class AdminRoutes extends BaseRoutes {
   private postAdmin(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
 
-      if (!req.body.email && !req.body.password) {
-        console.log(req.body);
-        resolve(new Response(200, "email and password required", {
+      if ((req.body.messType === undefined || req.body.password === undefined || req.body.email === undefined)
+        || (req.body.messType === null || req.body.password === null || req.body.email === null) ||
+        (req.body.messType === "" || req.body.password === "" || req.body.email === "")) {
+        resolve(new Response(200, "Please fill all fields", {
           success: false,
         }));
       } else {
-        const newAdmin: any = new this.UserModel({
-          email: req.body.email,
-          userType: "admin",
+        const newAdmin: any = new this.AdminModel({
+          email: escape(req.body.email),
+          messType: escape(req.body.messType),
+          password: escape(req.body.password),
         });
 
         newAdmin.password = newAdmin.generateHash(req.body.password);
 
-        newAdmin.save().then((user: any) => {
+        newAdmin.save().then((admin: any) => {
 
                     // create a token
-          const token = jwt.sign({id: user._id}, Config.secretKeys.jwtSecret, {
+          const token = jwt.sign({id: admin._id}, Config.secretKeys.jwtSecret, {
             expiresIn: 86400,
           });
 
           resolve(new Response(201, "Successful response", {
             success: true,
-            user,
+            admin,
             token,
           }));
         }).catch((error) => reject(new Response(500, "Unable to save new admin", {
@@ -71,13 +77,16 @@ export class AdminRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private getUsers(req: express.Request, res: express.Response) {
+  private getUsersForGroundMess(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      User.find().then((users: any) => {
-        resolve(new Response(200, "Successful response", {
-          success: true,
-          users,
-        }));
+      Admin.findOne({_id: req.user._id}).then((admin: any) => {
+        Coupon.find().select("couponDownMess").then((users: any)=>{
+          resolve(new Response(200, "Successful response", {
+            success: true,
+            admin,
+            users
+          }));
+        });
       }).catch((error) => reject(new Response(500, "Unable to get users", {
         error: error.toString(),
       })));

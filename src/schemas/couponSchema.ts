@@ -8,14 +8,36 @@ export const CouponSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     required: true,
   },
-  coupon: {
+  name: {
+    type: String,
+    select: true,
+    required: true
+  },
+  collegeId: {
+    type: String,
+    select: true,
+    required: true
+  },
+  gender: {
+    type: String,
+    select: true,
+    required: true,
+  },
+  couponDownMess: {
     type: [{
       createdAt: String,
-      messup: Array,
       messdown: Array,
     }],
     default: [],
-    select: true,
+    select: false,
+  },
+  couponUpMess: {
+    type: [{
+      createdAt: String,
+      messup: Array,
+    }],
+    default: [],
+    select: false,
   },
 }, {
   timestamps: {},

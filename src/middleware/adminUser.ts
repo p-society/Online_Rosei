@@ -2,10 +2,10 @@ import * as express from "express";
 import * as jwt from "jsonwebtoken";
 import {model} from "mongoose";
 import {Response} from "../models/restful";
-import {UserSchema} from "../schemas";
+import {AdminSchema} from "../schemas";
 import {Config} from "../shared";
 
-const User = model("User", UserSchema);
+const Admin = model("Admin", AdminSchema);
 
 interface Authenticated {
   user;
@@ -27,7 +27,7 @@ export const isAdminOrUser = (req: express.Request & Authenticated,
           success: false,
         }));
       } else {
-        User.findById(decoded.id).select("userType password").then((user: any) => {
+        Admin.findById(decoded.id).select("userType password").then((user: any) => {
           if (user.userType !== "admin") {
             return res.send(new Response(500, "You don't have admin access", {
               success: false,
@@ -37,7 +37,7 @@ export const isAdminOrUser = (req: express.Request & Authenticated,
             next();
           }
         }).catch((err) => {
-          return res.send(new Response(500, "Unable to Authenticate User", {
+          return res.send(new Response(500, "Unable to Authenticate Admin", {
             success: false,
           }));
         });

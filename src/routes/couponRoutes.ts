@@ -1,6 +1,7 @@
 import bcrypt = require("bcrypt-nodejs");
 import * as express from "express";
 import jwt = require("jsonwebtoken");
+import moment = require("moment");
 import {model} from "mongoose";
 import queryString = require("query-string");
 import {BaseRoutes} from "../classes";
@@ -9,7 +10,6 @@ import {isAuthenticated} from "../middleware";
 import {Response} from "../models";
 import {CouponSchema, UserSchema} from "../schemas";
 import {Config} from "../shared";
-import moment = require('moment');
 
 const User = model("User", UserSchema);
 const Coupon = model("Coupon", CouponSchema);
@@ -28,10 +28,16 @@ export class CouponRoutes extends BaseRoutes {
       const couponSorted = await this.couponCheck(req.body);
       const coupon = new this.CouponModel({
         userId: req.user._id,
-        timestamp: moment().format('DD-MM-YYYY'),
-        coupon: [{
-          createdAt: moment().format('DD-MM-YYYY'),
+        gender: req.user.sex,
+        name: req.user.name,
+        collegeId: req.user.collegeId,
+        timestamp: moment().format("DD-MM-YYYY"),
+        couponDownMess: [{
+          createdAt: moment().format("DD-MM-YYYY"),
           messdown: couponSorted.mess1,
+        }],
+        couponUpMess: [{
+          createdAt: moment().format("DD-MM-YYYY"),
           messup: couponSorted.mess2,
         }],
       });
@@ -178,16 +184,18 @@ export class CouponRoutes extends BaseRoutes {
 
   private getCoupon(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
-      this.CouponModel.findOne({userId: req.user._id}).sort({createdAt: "descending"}).then((coupon: any) => {
+      this.CouponModel.findOne({userId: req.user._id}).select("couponUpMess couponDownMess").sort({createdAt: "descending"}).then((coupon: any) => {
         if (coupon === null) {
           resolve(new Response(200, "No coupon booked", {
             success: false,
           }));
         } else {
-          const bookedCoupon = coupon.coupon[0];
+          const bookedCouponDown = coupon.couponDownMess[0];
+          const bookedCouponUp = coupon.couponUpMess[0];
           resolve(new Response(200, "These are your latest coupons for this week", {
             success: true,
-            bookedCoupon,
+            bookedCouponDown,
+            bookedCouponUp
           }));
         }
       }).catch((error) => reject(new Response(500, "Unable to get coupon", {
