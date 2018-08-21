@@ -65,7 +65,7 @@ export class UserRoutes extends BaseRoutes {
                 </div>`));
             const newUser: any = new this.UserModel({
               email,
-              name: escape(req.body.name),
+              name: req.body.name,
               sex: escape(req.body.sex),
               collegeId: escape(req.body.collegeId),
               tokenEmailToSend,

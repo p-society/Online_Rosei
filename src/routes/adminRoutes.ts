@@ -19,23 +19,9 @@ export class AdminRoutes extends BaseRoutes {
 
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.postAdmin(req, res));
+    this.router.route("/login").post((req, res) => this.loginAdmin(req, res));
     this.router.route("/mess1/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForGroundMess(req, res));
     this.router.route("/mess2/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForUpperMess(req, res));
-  }
-
-  private getUsersForUpperMess(req: express.Request, res: express.Response) {
-    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      Admin.findOne({_id: req.params.id}).then((admin) => {
-        resolve(new Response(200, "Successful response", {
-          success: true,
-          admin,
-        }));
-      }).catch((error) => reject(new Response(500, "Unable to get admin", {
-        error: error.toString(),
-      })));
-    });
-
-    this.completeRequest(promise, res);
   }
 
   private postAdmin(req: express.Request, res: express.Response) {
@@ -77,13 +63,63 @@ export class AdminRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
+  private loginAdmin(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+
+      Admin.findOne({ email: escape(req.body.email) }).select("password userType").then((user: any) => {
+        if (!user) {
+          resolve(new Response(200, "No Admin user exist", {
+            success: false,
+          }));
+        } else {
+          if (!user.validPassword(escape(req.body.password))) {
+            resolve(new Response(200, "Incorrect Password", {
+              success: false,
+            }));
+          }
+          else {
+            const token = jwt.sign({ id: user._id }, Config.secretKeys.jwtSecret, {
+              expiresIn: 86400 * 7,
+            });
+
+            resolve(new Response(200, "Successful response", {
+              success: true,
+              user,
+              token,
+            }));
+          }
+        }
+      }).catch((err) => {
+        reject(new Response(500, "Unable to login", {
+          error: err.toString(),
+        }));
+      });
+    });
+
+    this.completeRequest(promise, res);
+  }
+
+  private getUsersForUpperMess(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+      Admin.findOne({_id: req.params.id}).then((admin) => {
+        resolve(new Response(200, "Successful response", {
+          success: true,
+          admin,
+        }));
+      }).catch((error) => reject(new Response(500, "Unable to get admin", {
+        error: error.toString(),
+      })));
+    });
+
+    this.completeRequest(promise, res);
+  }
+
   private getUsersForGroundMess(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       Admin.findOne({_id: req.user._id}).then((admin: any) => {
-        Coupon.find().select("couponDownMess").then((users: any)=>{
+        Coupon.find().select("couponDownMess").sort({gender: "ascending"}).then((users: any)=>{
           resolve(new Response(200, "Successful response", {
             success: true,
-            admin,
             users
           }));
         });
