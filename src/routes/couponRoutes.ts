@@ -9,6 +9,7 @@ import {isAuthenticated} from "../middleware";
 import {Response} from "../models";
 import {CouponSchema, UserSchema} from "../schemas";
 import {Config} from "../shared";
+import moment = require('moment');
 
 const User = model("User", UserSchema);
 const Coupon = model("Coupon", CouponSchema);
@@ -27,9 +28,9 @@ export class CouponRoutes extends BaseRoutes {
       const couponSorted = await this.couponCheck(req.body);
       const coupon = new this.CouponModel({
         userId: req.user._id,
-        timestamp: Date.now().toString(),
+        timestamp: moment().format('DD-MM-YYYY'),
         coupon: [{
-          createdAt: Date.now().toString(),
+          createdAt: moment().format('DD-MM-YYYY'),
           messdown: couponSorted.mess1,
           messup: couponSorted.mess2,
         }],
