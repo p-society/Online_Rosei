@@ -195,7 +195,7 @@ export class CouponRoutes extends BaseRoutes {
           resolve(new Response(200, "These are your latest coupons for this week", {
             success: true,
             bookedCouponDown,
-            bookedCouponUp
+            bookedCouponUp,
           }));
         }
       }).catch((error) => reject(new Response(500, "Unable to get coupon", {

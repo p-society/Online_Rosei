@@ -11,12 +11,12 @@ export const CouponSchema: Schema = new Schema({
   name: {
     type: String,
     select: true,
-    required: true
+    required: true,
   },
   collegeId: {
     type: String,
     select: true,
-    required: true
+    required: true,
   },
   gender: {
     type: String,

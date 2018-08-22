@@ -23,8 +23,8 @@ export interface ICoupon extends Document {
   couponDownMess: ICoupontypedown[];
   couponUpMess: ICoupontypeup[];
   gender: string;
-  collegeId: string,
+  collegeId: string;
   name: string;
-  
+
   _id: string;
 }

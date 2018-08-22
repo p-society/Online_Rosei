@@ -5,7 +5,7 @@ import {BaseRoutes} from "../classes";
 import {IAdmin, ICoupon, IUser, MessElement} from "../interfaces";
 import {isAdminOrUser} from "../middleware";
 import {Response} from "../models";
-import {AdminSchema, UserSchema, CouponSchema} from "../schemas";
+import {AdminSchema, CouponSchema, UserSchema} from "../schemas";
 import {Config} from "../shared";
 
 const Admin = model("Admin", AdminSchema);
@@ -76,8 +76,7 @@ export class AdminRoutes extends BaseRoutes {
             resolve(new Response(200, "Incorrect Password", {
               success: false,
             }));
-          }
-          else {
+          } else {
             const token = jwt.sign({ id: user._id }, Config.secretKeys.jwtSecret, {
               expiresIn: 86400 * 7,
             });
@@ -99,14 +98,16 @@ export class AdminRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private getUsersForUpperMess(req: express.Request, res: express.Response) {
+  private getUsersForGroundMess(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      Admin.findOne({_id: req.params.id}).then((admin) => {
-        resolve(new Response(200, "Successful response", {
-          success: true,
-          admin,
-        }));
-      }).catch((error) => reject(new Response(500, "Unable to get admin", {
+      Admin.findOne({_id: req.user._id}).then((admin: any) => {
+        Coupon.find().select("couponDownMess").sort({gender: "ascending"}).then((users: any) => {
+          resolve(new Response(200, "Successful response", {
+            success: true,
+            users,
+          }));
+        });
+      }).catch((error) => reject(new Response(500, "Unable to get users", {
         error: error.toString(),
       })));
     });
@@ -114,13 +115,13 @@ export class AdminRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private getUsersForGroundMess(req: express.Request, res: express.Response) {
+  private getUsersForUpperMess(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       Admin.findOne({_id: req.user._id}).then((admin: any) => {
-        Coupon.find().select("couponDownMess").sort({gender: "ascending"}).then((users: any)=>{
+        Coupon.find().select("couponUpMess").sort({gender: "ascending"}).then((users: any) => {
           resolve(new Response(200, "Successful response", {
             success: true,
-            users
+            users,
           }));
         });
       }).catch((error) => reject(new Response(500, "Unable to get users", {
