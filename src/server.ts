@@ -8,6 +8,7 @@ import cors = require("cors");
 import express = require("express");
 import * as helmet from "helmet";
 import mongoose = require("mongoose");
+import path = require("path");
 import {
   AdminRoutes,
   AuthRoutes,
@@ -54,6 +55,8 @@ export class IIITService {
     this.app = express();
     this.app.use(helmet());
     this.app.use(cors());
+    this.app.use(express.static(path.join(__dirname,'public')));
+
       // make express use the bodyParser for json middleware
     this.app.use(bodyParser.json({}));
 
@@ -66,8 +69,8 @@ export class IIITService {
     // Routes
 
   private initAppRoutes() {
-    this.app.get("/", (req, res) => {
-      res.send("Dude this is just home page");
+    this.app.get("*",(req,res)=>{
+      res.sendFile(path.join(__dirname , '../src/public/index.html'))
     });
 
     const userRoutes: UserRoutes = new UserRoutes();

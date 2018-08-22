@@ -22,6 +22,7 @@ export class AdminRoutes extends BaseRoutes {
     this.router.route("/login").post((req, res) => this.loginAdmin(req, res));
     this.router.route("/mess1/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForGroundMess(req, res));
     this.router.route("/mess2/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForUpperMess(req, res));
+    this.router.route("/god/:id").post(isAdminOrUser, (req, res) => this.dropCollection(req, res));
   }
 
   private postAdmin(req: express.Request, res: express.Response) {
@@ -125,6 +126,32 @@ export class AdminRoutes extends BaseRoutes {
           }));
         });
       }).catch((error) => reject(new Response(500, "Unable to get users", {
+        error: error.toString(),
+      })));
+    });
+
+    this.completeRequest(promise, res);
+  }
+
+  private dropCollection(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+      Admin.findOne({_id: req.user._id}).then((admin: any) => {
+        console.log(req.params.id, req.user._id)
+        if (admin.messType !== "god") {
+          resolve(new Response(200, "Sorry you cannot act god", {
+            success: false,
+          }));
+        } else if (String(req.params.id) !== String(req.user._id)) {
+          resolve(new Response(200, "Sorry you cannot act god, don't act smart", {
+            success: false,
+          }));
+        } else {
+          Coupon.collection.drop();
+          resolve(new Response(200, "Successful response", {
+            success: true,
+          }));
+        }
+      }).catch((error) => reject(new Response(500, "Some error occured", {
         error: error.toString(),
       })));
     });

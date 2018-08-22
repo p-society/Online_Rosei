@@ -1,3 +1,3 @@
 export * from "./userSchema";
 export * from "./couponSchema";
-export * from "./AdminSchema";
+export * from "./adminSchema";

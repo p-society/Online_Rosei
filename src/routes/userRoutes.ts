@@ -14,7 +14,7 @@ const User = model("User", UserSchema);
 
 export class UserRoutes extends BaseRoutes {
   private UserModel = model("User", UserSchema);
-  private GridService = new SendGridService();
+  private GridService = new SendGridService(process.env.SENDGRIDSERVICE);
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
