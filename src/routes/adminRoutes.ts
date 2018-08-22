@@ -18,50 +18,10 @@ export class AdminRoutes extends BaseRoutes {
   private CouponModel = model("Coupon", CouponSchema);
 
   protected initRoutes() {
-    this.router.route("/register").post((req, res) => this.postAdmin(req, res));
     this.router.route("/login").post((req, res) => this.loginAdmin(req, res));
     this.router.route("/mess1/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForGroundMess(req, res));
     this.router.route("/mess2/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForUpperMess(req, res));
     this.router.route("/god/:id").post(isAdminOrUser, (req, res) => this.dropCollection(req, res));
-  }
-
-  private postAdmin(req: express.Request, res: express.Response) {
-    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-
-      if ((req.body.messType === undefined || req.body.password === undefined || req.body.email === undefined)
-        || (req.body.messType === null || req.body.password === null || req.body.email === null) ||
-        (req.body.messType === "" || req.body.password === "" || req.body.email === "")) {
-        resolve(new Response(200, "Please fill all fields", {
-          success: false,
-        }));
-      } else {
-        const newAdmin: any = new this.AdminModel({
-          email: escape(req.body.email),
-          messType: escape(req.body.messType),
-          password: escape(req.body.password),
-        });
-
-        newAdmin.password = newAdmin.generateHash(req.body.password);
-
-        newAdmin.save().then((admin: any) => {
-
-                    // create a token
-          const token = jwt.sign({id: admin._id}, Config.secretKeys.jwtSecret, {
-            expiresIn: 86400,
-          });
-
-          resolve(new Response(201, "Successful response", {
-            success: true,
-            admin,
-            token,
-          }));
-        }).catch((error) => reject(new Response(500, "Unable to save new admin", {
-          error: error.toString(),
-        })));
-      }
-    });
-
-    this.completeRequest(promise, res);
   }
 
   private loginAdmin(req: express.Request, res: express.Response) {
