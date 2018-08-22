@@ -6,7 +6,7 @@ export const Config = {
   dbSettings: {
     authEnabled: process.env.MONGO_AUTH || false,
     connectionString: process.env.MONGO_DB_HOST || "localhost:27017",
-    database: "iiit_rosie",
+    database: process.env.DATABASE || "iiit_rosie",
     password: process.env.MONGO_AUTH_PASSWORD,
     username: process.env.MONGO_AUTH_USERNAME,
   },

@@ -51,10 +51,24 @@ export class IIITService {
   }
 
   private initExpress() {
+    var originsWhitelist = [
+      'http://localhost:4200',
+      'https://topaz-ceiling.glitch.me/'
+    ];
+    const options:cors.CorsOptions = {
+
+      origin: function(origin, callback){
+        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+        callback(null, isWhitelisted);
+      },
+      allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "x-access-token"],
+      credentials: true,
+      methods: "GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE",
+    };
       // create Express
     this.app = express();
     this.app.use(helmet());
-    this.app.use(cors());
+    this.app.use(cors(options));
     this.app.use(express.static(path.join(__dirname,'public')));
 
       // make express use the bodyParser for json middleware

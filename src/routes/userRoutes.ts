@@ -56,7 +56,7 @@ export class UserRoutes extends BaseRoutes {
             <div style="background-color:#2E4053;color:#F1948A;font-style:
                 italic;width:800px;font-size:24px;padding:20px;">
                 To book coupon online you have to verify your email
-                : <a href="http://localhost:4200/activateUser/?${queryies}"
+                : <a href="https://topaz-ceiling.glitch.me/activateUser/?${queryies}"
                 style="color:#FAE5D3">Click to verify</a>
                 <br/><br/>
                 Please verify in 1 hour before it expires.
