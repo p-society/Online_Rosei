@@ -31,8 +31,12 @@ export class UserRoutes extends BaseRoutes {
         resolve(new Response(200, "Please fill all fields", {
           success: false,
         }));
+      } else if (req.body.collegeId.length !== 7) {
+        resolve(new Response(200, "Please don't try to act smart and enter your college Id only", {
+          success: false,
+        }));
       } else {
-        const email = escape(req.body.collegeId) + "@iiit-bh.ac.in";
+        const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
         User.findOne({collegeId: req.body.collegeId}).then((user: any) => {
           if (user !== null) {
             resolve(new Response(200, "collegeId already in use", {
