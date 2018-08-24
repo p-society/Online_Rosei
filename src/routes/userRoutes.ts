@@ -20,6 +20,7 @@ export class UserRoutes extends BaseRoutes {
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
     this.router.route("/profile/:id").get(isAuthenticated, (req, res) => this.profileUser(req, res));
     this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
+    this.router.route("/sendActivation").post((req, res) => this.sendActivation(req, res));
   }
 
   private registerUser(req: express.Request, res: express.Response) {
@@ -52,6 +53,7 @@ export class UserRoutes extends BaseRoutes {
               email,
             };
             const queryies = queryString.stringify(query);
+            const emailVerification = `https://aboard-sidecar.glitch.me/activateUser/?${queryies}`
             const mail = new SendGridMail(
             new SendGridEmail("verify@iiit_rosie.com"),
             "Please verfiy your email",
@@ -60,7 +62,7 @@ export class UserRoutes extends BaseRoutes {
             <div style="background-color:#2E4053;color:#F1948A;font-style:
                 italic;width:800px;font-size:24px;padding:20px;">
                 To book coupon online you have to verify your email
-                : <a href="https://aboard-sidecar.glitch.me/activateUser/?${queryies}"
+                : <a href="${emailVerification}"
                 style="color:#FAE5D3">Click to verify</a>
                 <br/><br/>
                 Please verify in 1 hour before it expires.
@@ -69,9 +71,10 @@ export class UserRoutes extends BaseRoutes {
                 </div>`));
             const newUser: any = new this.UserModel({
               email,
+              verificationEmailToSend: emailVerification,
               name: req.body.name,
               sex: escape(req.body.sex),
-              collegeId: escape(req.body.collegeId),
+              collegeId: escape(req.body.collegeId).toLowerCase(),
               tokenEmailToSend,
             });
 
@@ -195,6 +198,52 @@ export class UserRoutes extends BaseRoutes {
       }).catch((error) => reject(new Response(500, "Unable to get user", {
         error: error.toString(),
       })));
+    });
+
+    this.completeRequest(promise, res);
+  }
+
+  private sendActivation (req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+      if (Object.keys(req.body).length === 0){
+        resolve(new Response(200, "Please don't try to act smart", {
+          success: false,
+        }));
+      } else {
+        this.UserModel.findOne({collegeId: req.body.collegeId}).select('verificationEmailToSend').then((user) => {
+          if (user === null) {
+            resolve(new Response(200, "Sorry no user found", {
+              success: false,
+            }));
+          } else {
+            const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
+            const emailVerification = user.verificationEmailToSend
+            const mail = new SendGridMail(
+            new SendGridEmail("verify@iiit_rosie.com"),
+            "Please verfiy your email",
+            new SendGridEmail(email),
+            new SendGridContent("text/html", `
+            <div style="background-color:#2E4053;color:#F1948A;font-style:
+                italic;width:800px;font-size:24px;padding:20px;">
+                To book coupon online you have to verify your email
+                : <a href="${emailVerification}"
+                style="color:#FAE5D3">Click to verify</a>
+                <br/><br/>
+                Please verify in 1 hour before it expires.
+                <br/><br/>
+                Thank you for your patience
+                </div>`));
+            this.GridService.send(mail).then((val)=>{
+              console.log("sent meail")
+              resolve(new Response(200, "Succesfully sent email, Please check your college email", {
+                success: true,
+              }));
+            });
+          }
+        }).catch((error) => reject(new Response(500, "Unable to get user", {
+          error: error.toString(),
+        })));
+      }
     });
 
     this.completeRequest(promise, res);

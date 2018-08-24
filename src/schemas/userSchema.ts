@@ -39,6 +39,10 @@ export const UserSchema = new Schema({
     type: String,
     select: false,
   },
+  verificationEmailToSend: {
+    type: String,
+    select: false,
+  },
   active: {
     type: Boolean,
     select: true,
