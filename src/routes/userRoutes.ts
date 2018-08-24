@@ -21,6 +21,7 @@ export class UserRoutes extends BaseRoutes {
     this.router.route("/profile/:id").get(isAuthenticated, (req, res) => this.profileUser(req, res));
     this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
     this.router.route("/sendActivation").post((req, res) => this.sendActivation(req, res));
+    this.router.route("/forgotPassword").post((req, res) => this.forgotPassword(req, res));
   }
 
   private registerUser(req: express.Request, res: express.Response) {
@@ -53,7 +54,7 @@ export class UserRoutes extends BaseRoutes {
               email,
             };
             const queryies = queryString.stringify(query);
-            const emailVerification = `https://aboard-sidecar.glitch.me/activateUser/?${queryies}`
+            const emailVerification = `https://aboard-sidecar.glitch.me/activateUser/?${queryies}`;
             const mail = new SendGridMail(
             new SendGridEmail("verify@iiit_rosie.com"),
             "Please verfiy your email",
@@ -203,21 +204,21 @@ export class UserRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private sendActivation (req: express.Request, res: express.Response) {
+  private sendActivation(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      if (Object.keys(req.body).length === 0){
+      if (Object.keys(req.body).length === 0) {
         resolve(new Response(200, "Please don't try to act smart", {
           success: false,
         }));
       } else {
-        this.UserModel.findOne({collegeId: req.body.collegeId}).select('verificationEmailToSend').then((user) => {
+        this.UserModel.findOne({collegeId: req.body.collegeId}).select("verificationEmailToSend").then((user: any) => {
           if (user === null) {
             resolve(new Response(200, "Sorry no user found", {
               success: false,
             }));
           } else {
             const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
-            const emailVerification = user.verificationEmailToSend
+            const emailVerification = user.verificationEmailToSend;
             const mail = new SendGridMail(
             new SendGridEmail("verify@iiit_rosie.com"),
             "Please verfiy your email",
@@ -233,8 +234,8 @@ export class UserRoutes extends BaseRoutes {
                 <br/><br/>
                 Thank you for your patience
                 </div>`));
-            this.GridService.send(mail).then((val)=>{
-              console.log("sent meail")
+            this.GridService.send(mail).then((val) => {
+              console.log("sent email");
               resolve(new Response(200, "Succesfully sent email, Please check your college email", {
                 success: true,
               }));
@@ -247,5 +248,65 @@ export class UserRoutes extends BaseRoutes {
     });
 
     this.completeRequest(promise, res);
+  }
+
+  private forgotPassword(req: express.Request, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
+      if (Object.keys(req.body).length === 0) {
+        resolve(new Response(200, "Please don't try to act smart", {
+          success: false,
+        }));
+      } else {
+        this.UserModel.findOne({collegeId: req.body.collegeId}).select("verificationEmailToSend password").then((user: any) => {
+
+          if (user === null) {
+            resolve(new Response(200, "Sorry no user found", {
+              success: false,
+            }));
+          } else {
+            const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
+            const name = user.name;
+            const pass = this.makeid();
+            user.password = bcrypt.hashSync(pass, bcrypt.genSaltSync(8), null);
+            const mail = new SendGridMail(
+            new SendGridEmail("verify@iiit_rosie.com"),
+            "Temporary Password for rosei",
+            new SendGridEmail(email),
+            new SendGridContent("text/html", `
+            <div style="background-color:#2E4053;color:#48C9B0;padding:20px;font-style:italic;width:700px;font-size:24px;">
+            Hello ` + name + `
+            <br/><br/>
+            Your tempory Password is : <b style="color:#FAE5D3">` + pass + `</b>
+            <br/><br/>
+            Please change it once you login.
+            <br/><br/>
+            enjoy
+            </div>
+            `));
+            user.save().then(() => {
+              this.GridService.send(mail).then((val) => {
+                console.log("sent email");
+                resolve(new Response(200, "Succesfully sent email, Please check your college email", {
+                  success: true,
+                }));
+              });
+            });
+          }
+        }).catch((error) => reject(new Response(500, "Unable to get user", {
+          error: error.toString(),
+        })));
+      }
+    });
+
+    this.completeRequest(promise, res);
+  }
+
+  private makeid() {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (let i = 0; i < 10; i++) { text += possible.charAt(Math.floor(Math.random() * possible.length)); }
+
+    return text;
   }
 }

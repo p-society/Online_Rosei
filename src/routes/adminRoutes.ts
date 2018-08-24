@@ -3,7 +3,7 @@ import jwt = require("jsonwebtoken");
 import {model} from "mongoose";
 import {BaseRoutes} from "../classes";
 import {IAdmin, ICoupon, IUser, MessElement} from "../interfaces";
-import {isAdminOrUser, god} from "../middleware";
+import {god, isAdminOrUser} from "../middleware";
 import {Response} from "../models";
 import {AdminSchema, CouponSchema, UserSchema} from "../schemas";
 import {Config} from "../shared";
