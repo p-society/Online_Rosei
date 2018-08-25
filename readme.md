@@ -13,8 +13,8 @@
 - [x] Add login, signup pages
 - [x] Show profile page
 - [x] Add all routes
-- [ ] Add menu
-- [ ] Add forgot password option
+- [x] Add menu
+- [x] Add forgot password option
 - [ ] Add tests
 
 
@@ -24,6 +24,8 @@
 * `node` >= 8.9.0
 * `npm` >= 5.5.1
 * `TypeScript` >= 3.0.1
+
+
 
 ### How to use (using docker)
 
@@ -47,6 +49,12 @@ clone repository
 git checkout local-server
 npm i
 mongod // any command that start your mongo server
+
+Now set .env file inside dist/ folder
+
+SENDGRIDSERVICE= send grid api key // app.sendgrid.com
+HOSTEDURL=http://localhost:4200/activateUser
+
 npm start
 
 // Now your server is running on local host

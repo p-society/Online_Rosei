@@ -16,10 +16,12 @@
   "author": "Kautilya Tripathi <tripathi.kautilya@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@types/dotenv": "^4.0.3",
     "bcrypt-nodejs": "0.0.3",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
+    "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "helmet": "^3.13.0",
     "jsonwebtoken": "^8.3.0",

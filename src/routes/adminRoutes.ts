@@ -3,7 +3,7 @@ import jwt = require("jsonwebtoken");
 import {model} from "mongoose";
 import {BaseRoutes} from "../classes";
 import {IAdmin, ICoupon, IUser, MessElement} from "../interfaces";
-import {god, isAdminOrUser} from "../middleware";
+import {isAdminOrUser} from "../middleware";
 import {Response} from "../models";
 import {AdminSchema, CouponSchema, UserSchema} from "../schemas";
 import {Config} from "../shared";
@@ -12,6 +12,10 @@ const Admin = model("Admin", AdminSchema);
 const User = model("User", UserSchema);
 const Coupon = model("Coupon", CouponSchema);
 
+export interface Authenticated extends express.Request {
+  user;
+}
+
 export class AdminRoutes extends BaseRoutes {
   private AdminModel = model("Admin", AdminSchema);
   private UserModel = model("User", UserSchema);
@@ -19,8 +23,8 @@ export class AdminRoutes extends BaseRoutes {
 
   protected initRoutes() {
     this.router.route("/login").post((req, res) => this.loginAdmin(req, res));
-    this.router.route("/mess1/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForGroundMess(req, res));
-    this.router.route("/mess2/all/:id").get(isAdminOrUser, (req, res) => this.getUsersForUpperMess(req, res));
+    this.router.route("/mess1/all/:id").get(isAdminOrUser, (req: Authenticated, res) => this.getUsersForGroundMess(req, res));
+    this.router.route("/mess2/all/:id").get(isAdminOrUser, (req: Authenticated, res) => this.getUsersForUpperMess(req, res));
     this.router.route("/god/:id").post((req, res) => this.dropCollection(req, res));
   }
 
@@ -59,7 +63,7 @@ export class AdminRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private getUsersForGroundMess(req: express.Request, res: express.Response) {
+  private getUsersForGroundMess(req: Authenticated, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       Admin.findOne({_id: req.user._id}).then((admin: any) => {
         Coupon.find().select("couponDownMess").sort({gender: "ascending"}).then((users: any) => {
@@ -76,7 +80,7 @@ export class AdminRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private getUsersForUpperMess(req: express.Request, res: express.Response) {
+  private getUsersForUpperMess(req: Authenticated, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       Admin.findOne({_id: req.user._id}).then((admin: any) => {
         Coupon.find().select("couponUpMess").sort({gender: "ascending"}).then((users: any) => {

@@ -13,8 +13,9 @@ import {Config} from "../shared";
 const User = model("User", UserSchema);
 
 export class UserRoutes extends BaseRoutes {
+  public sendgrid: any = SendGridService;
   private UserModel = model("User", UserSchema);
-  private GridService = new SendGridService(process.env.SENDGRIDSERVICE);
+  private GridService = new this.sendgrid(process.env.SENDGRIDSERVICE);
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
@@ -54,7 +55,8 @@ export class UserRoutes extends BaseRoutes {
               email,
             };
             const queryies = queryString.stringify(query);
-            const emailVerification = `https://aboard-sidecar.glitch.me/activateUser/?${queryies}`;
+            const urlActivation = process.env.HOSTEDURL;
+            const emailVerification = `${urlActivation}/?${queryies}`;
             const mail = new SendGridMail(
             new SendGridEmail("verify@iiit_rosie.com"),
             "Please verfiy your email",

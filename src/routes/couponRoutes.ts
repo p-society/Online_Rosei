@@ -14,16 +14,20 @@ import {Config} from "../shared";
 const User = model("User", UserSchema);
 const Coupon = model("Coupon", CouponSchema);
 
+export interface AuthenticatedCoupon extends express.Request {
+  user;
+}
+
 export class CouponRoutes extends BaseRoutes {
   private UserModel = model("User", UserSchema);
   private CouponModel = model("Coupon", CouponSchema);
 
   protected initRoutes() {
-    this.router.route("/bookCoupon/:id").post(isAuthenticated, (req, res) => this.bookCoupon(req, res));
-    this.router.route("/getCoupon").get(isAuthenticated, (req, res) => this.getCoupon(req, res));
+    this.router.route("/bookCoupon/:id").post(isAuthenticated, (req: AuthenticatedCoupon, res) => this.bookCoupon(req, res));
+    this.router.route("/getCoupon").get(isAuthenticated, (req: AuthenticatedCoupon, res) => this.getCoupon(req, res));
   }
 
-  private bookCoupon(req: express.Request, res: express.Response) {
+  private bookCoupon(req: AuthenticatedCoupon , res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
       const couponSorted = await this.couponCheck(req.body);
       const coupon = new this.CouponModel({
@@ -182,7 +186,7 @@ export class CouponRoutes extends BaseRoutes {
     };
   }
 
-  private getCoupon(req: express.Request, res: express.Response) {
+  private getCoupon(req: AuthenticatedCoupon, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
       this.CouponModel.findOne({userId: req.user._id}).select("couponUpMess couponDownMess").sort({createdAt: "descending"}).then((coupon: any) => {
         if (coupon === null) {
