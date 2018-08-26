@@ -12,6 +12,10 @@ import {Config} from "../shared";
 
 const User = model("User", UserSchema);
 
+export interface AuthenticatedUser extends express.Request {
+  user;
+}
+
 export class UserRoutes extends BaseRoutes {
   public sendgrid: any = SendGridService;
   private UserModel = model("User", UserSchema);
@@ -19,7 +23,7 @@ export class UserRoutes extends BaseRoutes {
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
-    this.router.route("/profile/:id").get(isAuthenticated, (req, res) => this.profileUser(req, res));
+    this.router.route("/profile").get(isAuthenticated, (req: AuthenticatedUser , res) => this.profileUser(req, res));
     this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
     this.router.route("/sendActivation").post((req, res) => this.sendActivation(req, res));
     this.router.route("/forgotPassword").post((req, res) => this.forgotPassword(req, res));
@@ -143,9 +147,9 @@ export class UserRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private profileUser(req: express.Request, res: express.Response) {
+  private profileUser(req: AuthenticatedUser, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      this.UserModel.findOne({_id: req.params.id}).then((user) => {
+      this.UserModel.findOne({_id: req.user._id}).then((user) => {
         if (user === null) {
           resolve(new Response(200, "Sorry no user found", {
             success: false,
