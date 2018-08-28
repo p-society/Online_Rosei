@@ -9,7 +9,7 @@ import {isAuthenticated} from "../middleware";
 import {Response} from "../models";
 import {UserSchema} from "../schemas";
 import {Config} from "../shared";
-
+import cron = require('node-cron');
 const User = model("User", UserSchema);
 
 export interface AuthenticatedUser extends express.Request {
@@ -27,6 +27,24 @@ export class UserRoutes extends BaseRoutes {
     this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
     this.router.route("/sendActivation").post((req, res) => this.sendActivation(req, res));
     this.router.route("/forgotPassword").post((req, res) => this.forgotPassword(req, res));
+
+    // check for unactivated account and delete them
+    cron.schedule('0 0 0 * * *', function(){
+      console.log('running a task every day once');
+      User.find({}).then((user: any) => {
+        if (user !== null) {
+          user.forEach(async data=>{
+            if(data.active === false) {
+              console.log(user)
+              await User.remove({_id: data._id}, (err)=>{
+                if (err) throw new Error(err)
+                console.log("cleared:")
+              })
+            }
+          })
+        }
+      })
+    });
   }
 
   private registerUser(req: express.Request, res: express.Response) {
@@ -320,4 +338,5 @@ export class UserRoutes extends BaseRoutes {
 
     return text;
   }
+
 }
