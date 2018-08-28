@@ -54,6 +54,8 @@ Now set .env file inside dist/ folder
 
 SENDGRIDSERVICE= send grid api key // app.sendgrid.com
 HOSTEDURL=http://localhost:4200/activateUser
+JWTSECRET= //anything you want
+CRYPTO= //anything
 
 npm start
 

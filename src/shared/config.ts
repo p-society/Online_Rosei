@@ -14,7 +14,7 @@ export const Config = {
     env: process.env.environment || "local",
   },
   secretKeys: {
-    jwtSecret: "messiRonaldareGod",
-    cryptoSecret: "RonaldoMessiaReGod",
+    jwtSecret: process.env.JWTSECRET,
+    cryptoSecret: process.env.CRYPTO,
   },
 };

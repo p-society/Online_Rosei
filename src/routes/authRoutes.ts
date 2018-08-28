@@ -26,7 +26,7 @@ export class AuthRoutes extends BaseRoutes {
             success: false,
           }));
         } else {
-          if (!user.validPassword(escape(req.body.password))) {
+          if (!user.validPassword(req.body.password)) {
             resolve(new Response(200, "Incorrect Password", {
               success: false,
             }));

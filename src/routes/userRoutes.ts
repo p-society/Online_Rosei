@@ -31,7 +31,8 @@ export class UserRoutes extends BaseRoutes {
 
   private registerUser(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-
+      const collegeNumbers = req.body.collegeId.substr(1);
+      const isnum = /^\d+$/.test(collegeNumbers);
       if ((req.body.collegeId === undefined || req.body.password === undefined || req.body.sex === undefined || req.body.name === undefined)
         || (req.body.collegeId === null || req.body.password === null || req.body.sex === null || req.body.name === null) ||
         (req.body.collegeId === "" || req.body.password === "" || req.body.sex === "" || req.body.name === "") ) {
@@ -39,6 +40,10 @@ export class UserRoutes extends BaseRoutes {
           success: false,
         }));
       } else if (req.body.collegeId.length !== 7) {
+        resolve(new Response(200, "Please don't try to act smart and enter your college Id only", {
+          success: false,
+        }));
+      } else if (!isnum) {
         resolve(new Response(200, "Please don't try to act smart and enter your college Id only", {
           success: false,
         }));
