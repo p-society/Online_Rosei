@@ -24,6 +24,7 @@ export class CouponRoutes extends BaseRoutes {
 
   protected initRoutes() {
     this.router.route("/bookCoupon/:id").post(isAuthenticated, (req: AuthenticatedCoupon, res) => this.bookCoupon(req, res));
+    this.router.route("/editCoupon/:id").post(isAuthenticated, (req: AuthenticatedCoupon, res) => this.editCoupon(req, res));
     this.router.route("/getCoupon").get(isAuthenticated, (req: AuthenticatedCoupon, res) => this.getCoupon(req, res));
   }
 
@@ -59,49 +60,109 @@ export class CouponRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
+  private editCoupon(req: AuthenticatedCoupon , res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
+      const couponSorted = await this.couponCheck(req.body);
+      const coupon = new this.CouponModel({
+        userId: req.user._id,
+        gender: req.user.sex,
+        name: req.user.name,
+        collegeId: req.user.collegeId,
+        timestamp: moment().format("DD-MM-YYYY"),
+        couponDownMess: [{
+          createdAt: moment().format("DD-MM-YYYY"),
+          messdown: couponSorted.mess1,
+        }],
+        couponUpMess: [{
+          createdAt: moment().format("DD-MM-YYYY"),
+          messup: couponSorted.mess2,
+        }],
+      });
+      try {
+        await Coupon.remove({collegeId: req.user.collegeId}).then(()=>{
+          console.log('coupon removed')
+          coupon.save().then(()=>{
+            console.log('new coupon saved')
+            resolve(new Response(200, "Successfully edited coupon", {
+              success: true,
+            }));
+          })
+        })
+      } catch (err) {
+        resolve(new Response(200, "Unable to Edit coupon please try again later", {
+          success: false,
+        }));
+      }
+    });
+    this.completeRequest(promise, res);
+  }
+
+  private getCoupon(req: AuthenticatedCoupon, res: express.Response) {
+    const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
+      this.CouponModel.findOne({userId: req.user._id}).select("couponUpMess couponDownMess").sort({createdAt: "descending"}).then((coupon: any) => {
+        if (coupon === null) {
+          resolve(new Response(200, "No coupon booked", {
+            success: false,
+          }));
+        } else {
+          const bookedCouponDown = coupon.couponDownMess[0];
+          const bookedCouponUp = coupon.couponUpMess[0];
+          resolve(new Response(200, "These are your latest coupons for this week", {
+            success: true,
+            bookedCouponDown,
+            bookedCouponUp,
+          }));
+        }
+      }).catch((error) => reject(new Response(500, "Unable to get coupon", {
+        error: error.toString(),
+      })));
+    });
+    this.completeRequest(promise, res);
+  }
+
   private couponCheck(data) {
 
     const ELEMENT_DATA1: MessElement[] = [
       { day: "Monday",
-        breakfast: data.mess1.breakfastMess1.Monday ? data.mess1.breakfastMess1.Monday.val : "***",
-        lunch: data.mess1.lunchMess1.Monday ? data.mess1.lunchMess1.Monday.val : "***",
-        dinner: data.mess1.dinnerMess1.Monday ? data.mess1.dinnerMess1.Monday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Monday ? data.mess1.breakfastMess1.Monday.val : undefined,
+        lunch: data.mess1.lunchMess1.Monday ? data.mess1.lunchMess1.Monday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Monday ? data.mess1.dinnerMess1.Monday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Monday, data.mess1.lunchMess1.Monday, data.mess1.dinnerMess1.Monday),
       },
       { day: "Tuesday",
-        breakfast: data.mess1.breakfastMess1.Tuesday ? data.mess1.breakfastMess1.Tuesday.val : "***",
-        lunch: data.mess1.lunchMess1.Tuesday ? data.mess1.lunchMess1.Tuesday.val : "***",
-        dinner: data.mess1.dinnerMess1.Tuesday ? data.mess1.dinnerMess1.Tuesday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Tuesday ? data.mess1.breakfastMess1.Tuesday.val : undefined,
+        lunch: data.mess1.lunchMess1.Tuesday ? data.mess1.lunchMess1.Tuesday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Tuesday ? data.mess1.dinnerMess1.Tuesday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Tuesday, data.mess1.lunchMess1.Tuesday, data.mess1.dinnerMess1.Tuesday),
       },
       { day: "Wednesday",
-        breakfast: data.mess1.breakfastMess1.Wednesday ? data.mess1.breakfastMess1.Wednesday.val : "***",
-        lunch: data.mess1.lunchMess1.Wednesday ? data.mess1.lunchMess1.Wednesday.val : "***",
-        dinner: data.mess1.dinnerMess1.Wednesday ? data.mess1.dinnerMess1.Wednesday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Wednesday ? data.mess1.breakfastMess1.Wednesday.val : undefined,
+        lunch: data.mess1.lunchMess1.Wednesday ? data.mess1.lunchMess1.Wednesday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Wednesday ? data.mess1.dinnerMess1.Wednesday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Wednesday, data.mess1.lunchMess1.Wednesday, data.mess1.dinnerMess1.Wednesday),
       },
       { day: "Thursday",
-        breakfast: data.mess1.breakfastMess1.Thursday ? data.mess1.breakfastMess1.Thursday.val : "***",
-        lunch: data.mess1.lunchMess1.Thursday ? data.mess1.lunchMess1.Thursday.val : "***",
-        dinner: data.mess1.dinnerMess1.Thursday ? data.mess1.dinnerMess1.Thursday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Thursday ? data.mess1.breakfastMess1.Thursday.val : undefined,
+        lunch: data.mess1.lunchMess1.Thursday ? data.mess1.lunchMess1.Thursday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Thursday ? data.mess1.dinnerMess1.Thursday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Thursday, data.mess1.lunchMess1.Thursday, data.mess1.dinnerMess1.Thursday),
       },
       { day: "Friday",
-        breakfast: data.mess1.breakfastMess1.Friday ? data.mess1.breakfastMess1.Friday.val : "***",
-        lunch: data.mess1.lunchMess1.Friday ? data.mess1.lunchMess1.Friday.val : "***",
-        dinner: data.mess1.dinnerMess1.Friday ? data.mess1.dinnerMess1.Friday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Friday ? data.mess1.breakfastMess1.Friday.val : undefined,
+        lunch: data.mess1.lunchMess1.Friday ? data.mess1.lunchMess1.Friday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Friday ? data.mess1.dinnerMess1.Friday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Friday, data.mess1.lunchMess1.Friday, data.mess1.dinnerMess1.Friday),
       },
       { day: "Saturday",
-        breakfast: data.mess1.breakfastMess1.Saturday ? data.mess1.breakfastMess1.Saturday.val : "***",
-        lunch: data.mess1.lunchMess1.Saturday ? data.mess1.lunchMess1.Saturday.val : "***",
-        dinner: data.mess1.dinnerMess1.Saturday ? data.mess1.dinnerMess1.Saturday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Saturday ? data.mess1.breakfastMess1.Saturday.val : undefined,
+        lunch: data.mess1.lunchMess1.Saturday ? data.mess1.lunchMess1.Saturday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Saturday ? data.mess1.dinnerMess1.Saturday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Saturday, data.mess1.lunchMess1.Saturday, data.mess1.dinnerMess1.Saturday),
       },
       { day: "Sunday",
-        breakfast: data.mess1.breakfastMess1.Sunday ? data.mess1.breakfastMess1.Sunday.val : "***",
-        lunch: data.mess1.lunchMess1.Sunday ? data.mess1.lunchMess1.Sunday.val : "***",
-        dinner: data.mess1.dinnerMess1.Sunday ? data.mess1.dinnerMess1.Sunday.val : "***",
+        breakfast: data.mess1.breakfastMess1.Sunday ? data.mess1.breakfastMess1.Sunday.val : undefined,
+        lunch: data.mess1.lunchMess1.Sunday ? data.mess1.lunchMess1.Sunday.val : undefined,
+        dinner: data.mess1.dinnerMess1.Sunday ? data.mess1.dinnerMess1.Sunday.val : undefined,
         cost: checkCost(data.mess1.breakfastMess1.Sunday, data.mess1.lunchMess1.Sunday, data.mess1.dinnerMess1.Sunday),
       },
     ];
@@ -109,45 +170,45 @@ export class CouponRoutes extends BaseRoutes {
     // MESS 2 DATA
     const ELEMENT_DATA2: MessElement[] = [
       { day: "Monday",
-        breakfast: data.mess2.breakfastMess2.Monday ? data.mess2.breakfastMess2.Monday.val : "***",
-        lunch: data.mess2.lunchMess2.Monday ? data.mess2.lunchMess2.Monday.val : "***",
-        dinner: data.mess2.dinnerMess2.Monday ? data.mess2.dinnerMess2.Monday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Monday ? data.mess2.breakfastMess2.Monday.val : undefined,
+        lunch: data.mess2.lunchMess2.Monday ? data.mess2.lunchMess2.Monday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Monday ? data.mess2.dinnerMess2.Monday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Monday, data.mess2.lunchMess2.Monday, data.mess2.dinnerMess2.Monday),
       },
       { day: "Tuesday",
-        breakfast: data.mess2.breakfastMess2.Tuesday ? data.mess2.breakfastMess2.Tuesday.val : "***",
-        lunch: data.mess2.lunchMess2.Tuesday ? data.mess2.lunchMess2.Tuesday.val : "***",
-        dinner: data.mess2.dinnerMess2.Tuesday ? data.mess2.dinnerMess2.Tuesday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Tuesday ? data.mess2.breakfastMess2.Tuesday.val : undefined,
+        lunch: data.mess2.lunchMess2.Tuesday ? data.mess2.lunchMess2.Tuesday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Tuesday ? data.mess2.dinnerMess2.Tuesday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Tuesday, data.mess2.lunchMess2.Tuesday, data.mess2.dinnerMess2.Tuesday),
       },
       { day: "Wednesday",
-        breakfast: data.mess2.breakfastMess2.Wednesday ? data.mess2.breakfastMess2.Wednesday.val : "***",
-        lunch: data.mess2.lunchMess2.Wednesday ? data.mess2.lunchMess2.Wednesday.val : "***",
-        dinner: data.mess2.dinnerMess2.Wednesday ? data.mess2.dinnerMess2.Wednesday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Wednesday ? data.mess2.breakfastMess2.Wednesday.val : undefined,
+        lunch: data.mess2.lunchMess2.Wednesday ? data.mess2.lunchMess2.Wednesday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Wednesday ? data.mess2.dinnerMess2.Wednesday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Wednesday, data.mess2.lunchMess2.Wednesday, data.mess2.dinnerMess2.Wednesday),
       },
       { day: "Thursday",
-        breakfast: data.mess2.breakfastMess2.Thursday ? data.mess2.breakfastMess2.Thursday.val : "***",
-        lunch: data.mess2.lunchMess2.Thursday ? data.mess2.lunchMess2.Thursday.val : "***",
-        dinner: data.mess2.dinnerMess2.Thursday ? data.mess2.dinnerMess2.Thursday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Thursday ? data.mess2.breakfastMess2.Thursday.val : undefined,
+        lunch: data.mess2.lunchMess2.Thursday ? data.mess2.lunchMess2.Thursday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Thursday ? data.mess2.dinnerMess2.Thursday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Thursday, data.mess2.lunchMess2.Thursday, data.mess2.dinnerMess2.Thursday),
       },
       { day: "Friday",
-        breakfast: data.mess2.breakfastMess2.Friday ? data.mess2.breakfastMess2.Friday.val : "***",
-        lunch: data.mess2.lunchMess2.Friday ? data.mess2.lunchMess2.Friday.val : "***",
-        dinner: data.mess2.dinnerMess2.Friday ? data.mess2.dinnerMess2.Friday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Friday ? data.mess2.breakfastMess2.Friday.val : undefined,
+        lunch: data.mess2.lunchMess2.Friday ? data.mess2.lunchMess2.Friday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Friday ? data.mess2.dinnerMess2.Friday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Friday, data.mess2.lunchMess2.Friday, data.mess2.dinnerMess2.Friday),
       },
       { day: "Saturday",
-        breakfast: data.mess2.breakfastMess2.Saturday ? data.mess2.breakfastMess2.Saturday.val : "***",
-        lunch: data.mess2.lunchMess2.Saturday ? data.mess2.lunchMess2.Saturday.val : "***",
-        dinner: data.mess2.dinnerMess2.Saturday ? data.mess2.dinnerMess2.Saturday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Saturday ? data.mess2.breakfastMess2.Saturday.val : undefined,
+        lunch: data.mess2.lunchMess2.Saturday ? data.mess2.lunchMess2.Saturday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Saturday ? data.mess2.dinnerMess2.Saturday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Saturday, data.mess2.lunchMess2.Saturday, data.mess2.dinnerMess2.Saturday),
       },
       { day: "Sunday",
-        breakfast: data.mess2.breakfastMess2.Sunday ? data.mess2.breakfastMess2.Sunday.val : "***",
-        lunch: data.mess2.lunchMess2.Sunday ? data.mess2.lunchMess2.Sunday.val : "***",
-        dinner: data.mess2.dinnerMess2.Sunday ? data.mess2.dinnerMess2.Sunday.val : "***",
+        breakfast: data.mess2.breakfastMess2.Sunday ? data.mess2.breakfastMess2.Sunday.val : undefined,
+        lunch: data.mess2.lunchMess2.Sunday ? data.mess2.lunchMess2.Sunday.val : undefined,
+        dinner: data.mess2.dinnerMess2.Sunday ? data.mess2.dinnerMess2.Sunday.val : undefined,
         cost: checkCost(data.mess2.breakfastMess2.Sunday, data.mess2.lunchMess2.Sunday, data.mess2.dinnerMess2.Sunday),
       },
     ];
@@ -184,29 +245,6 @@ export class CouponRoutes extends BaseRoutes {
       mess1: ELEMENT_DATA1,
       mess2: ELEMENT_DATA2,
     };
-  }
-
-  private getCoupon(req: AuthenticatedCoupon, res: express.Response) {
-    const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
-      this.CouponModel.findOne({userId: req.user._id}).select("couponUpMess couponDownMess").sort({createdAt: "descending"}).then((coupon: any) => {
-        if (coupon === null) {
-          resolve(new Response(200, "No coupon booked", {
-            success: false,
-          }));
-        } else {
-          const bookedCouponDown = coupon.couponDownMess[0];
-          const bookedCouponUp = coupon.couponUpMess[0];
-          resolve(new Response(200, "These are your latest coupons for this week", {
-            success: true,
-            bookedCouponDown,
-            bookedCouponUp,
-          }));
-        }
-      }).catch((error) => reject(new Response(500, "Unable to get coupon", {
-        error: error.toString(),
-      })));
-    });
-    this.completeRequest(promise, res);
   }
 
 }

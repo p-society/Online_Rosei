@@ -14,3 +14,4 @@ jspm_packages
 /data/
 
 .DS_Store
+package-lock.json
