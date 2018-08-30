@@ -7,6 +7,8 @@ import {isAdminOrUser} from "../middleware";
 import {Response} from "../models";
 import {AdminSchema, CouponSchema, UserSchema} from "../schemas";
 import {Config} from "../shared";
+import cron = require('node-cron');
+import moment = require('moment');
 
 const Admin = model("Admin", AdminSchema);
 const User = model("User", UserSchema);
@@ -26,6 +28,23 @@ export class AdminRoutes extends BaseRoutes {
     this.router.route("/mess1/all/:id").get(isAdminOrUser, (req: Authenticated, res) => this.getUsersForGroundMess(req, res));
     this.router.route("/mess2/all/:id").get(isAdminOrUser, (req: Authenticated, res) => this.getUsersForUpperMess(req, res));
     this.router.route("/god/:id").post((req, res) => this.dropCollection(req, res));
+
+    //Clean Database every Monday
+    const presentDay = moment().utcOffset("+05:30").format("dddd");
+    if (presentDay === "Monday") {
+      cron.schedule("0 0 0 * * Monday", () => {
+        console.log("running a task every Monday");
+        Coupon.find({}).then((coupon: any) => {
+          if (coupon.length !== 0) {
+            Coupon.collection.drop();
+            console.log("Database Deleted");
+          }
+          else {
+            console.log("Already deleted database")
+          }
+        });
+      });
+    }  
   }
 
   private loginAdmin(req: express.Request, res: express.Response) {
