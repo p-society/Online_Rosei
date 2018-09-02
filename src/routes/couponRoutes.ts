@@ -31,65 +31,72 @@ export class CouponRoutes extends BaseRoutes {
   private bookCoupon(req: AuthenticatedCoupon, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
       const couponSorted = await this.couponCheck(req.body);
-      const presentDay = moment().format("dddd");
-      let createdFrom = moment().format("DD-MM-YYYY");
+      const presentDay = moment().utcOffset("+05:30").format("dddd");
+      let createdFrom = moment().utcOffset("+05:30").format("DD-MM-YYYY");
       let createUpto;
       switch (presentDay) {
       case "Sunday":
-        createdFrom = moment().add(8, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(14, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(8, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(14, "days").format("DD-MM-YYYY");
         break;
       case "Monday":
-        createdFrom = moment().add(7, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(13, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(7, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(13, "days").format("DD-MM-YYYY");
         break;
       case "Tuesday":
-        createdFrom = moment().add(6, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(12, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(6, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(12, "days").format("DD-MM-YYYY");
         break;
       case "Wednesday":
-        createdFrom = moment().add(5, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(11, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(5, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(11, "days").format("DD-MM-YYYY");
         break;
       case "Thursday":
-        createdFrom = moment().add(4, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(10, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(4, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(10, "days").format("DD-MM-YYYY");
         break;
       case "Friday":
-        createdFrom = moment().add(3, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(9, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(3, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(9, "days").format("DD-MM-YYYY");
         break;
       case "Saturday":
-        createdFrom = moment().add(2, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(8, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(2, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(8, "days").format("DD-MM-YYYY");
         break;
       }
-      const coupon = new this.CouponModel({
-        userId: req.user._id,
-        gender: req.user.sex,
-        name: req.user.name,
-        collegeId: req.user.collegeId,
-        timestamp: createdFrom,
-        couponDownMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messdown: couponSorted.mess1,
-        }],
-        couponUpMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messup: couponSorted.mess2,
-        }],
-      });
-      try {
-        await coupon.save();
-        resolve(new Response(200, "Successfully booked coupon", {
-          success: true,
-        }));
-      } catch (err) {
-        resolve(new Response(200, "Unable to book coupon please try again later", {
+      console.log(presentDay);
+      if (presentDay === "Sunday" || presentDay === "Monday" || presentDay === "Friday" || presentDay === "Saturday") {
+        resolve(new Response(200, "You can only book coupon fron Tuesday 12:00 am to Thursday 11:59 pm", {
           success: false,
         }));
+      } else {
+        const coupon = new this.CouponModel({
+          userId: req.user._id,
+          gender: req.user.sex,
+          name: req.user.name,
+          collegeId: req.user.collegeId,
+          timestamp: createdFrom,
+          couponDownMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messdown: couponSorted.mess1,
+          }],
+          couponUpMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messup: couponSorted.mess2,
+          }],
+        });
+        try {
+          await coupon.save();
+          resolve(new Response(200, "Successfully booked coupon", {
+            success: true,
+          }));
+        } catch (err) {
+          resolve(new Response(200, "Unable to book coupon please try again later", {
+            success: false,
+          }));
+        }
       }
     });
     this.completeRequest(promise, res);
@@ -98,70 +105,77 @@ export class CouponRoutes extends BaseRoutes {
   private editCoupon(req: AuthenticatedCoupon, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>(async (resolve, reject) => {
       const couponSorted = await this.couponCheck(req.body);
-      const presentDay = moment().format("dddd");
-      let createdFrom = moment().format("DD-MM-YYYY");
+      const presentDay = moment().utcOffset("+05:30").format("dddd");
+      let createdFrom = moment().utcOffset("+05:30").format("DD-MM-YYYY");
       let createUpto;
       switch (presentDay) {
       case "Sunday":
-        createdFrom = moment().add(8, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(14, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(8, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(14, "days").format("DD-MM-YYYY");
         break;
       case "Monday":
-        createdFrom = moment().add(7, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(13, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(7, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(13, "days").format("DD-MM-YYYY");
         break;
       case "Tuesday":
-        createdFrom = moment().add(6, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(12, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(6, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(12, "days").format("DD-MM-YYYY");
         break;
       case "Wednesday":
-        createdFrom = moment().add(5, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(11, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(5, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(11, "days").format("DD-MM-YYYY");
         break;
       case "Thursday":
-        createdFrom = moment().add(4, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(10, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(4, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(10, "days").format("DD-MM-YYYY");
         break;
       case "Friday":
-        createdFrom = moment().add(3, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(9, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(3, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(9, "days").format("DD-MM-YYYY");
         break;
       case "Saturday":
-        createdFrom = moment().add(2, "days").format("DD-MM-YYYY");
-        createUpto = moment().add(8, "days").format("DD-MM-YYYY");
+        createdFrom = moment().utcOffset("+05:30").add(2, "days").format("DD-MM-YYYY");
+        createUpto = moment().utcOffset("+05:30").add(8, "days").format("DD-MM-YYYY");
         break;
       }
-      const coupon = new this.CouponModel({
-        userId: req.user._id,
-        gender: req.user.sex,
-        name: req.user.name,
-        collegeId: req.user.collegeId,
-        timestamp: createdFrom,
-        couponDownMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messdown: couponSorted.mess1,
-        }],
-        couponUpMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messup: couponSorted.mess2,
-        }],
-      });
-      try {
-        await Coupon.remove({ collegeId: req.user.collegeId }).then(() => {
-          console.log("coupon removed");
-          coupon.save().then(() => {
-            console.log("new coupon saved");
-            resolve(new Response(200, "Successfully edited coupon", {
-              success: true,
-            }));
-          });
-        });
-      } catch (err) {
-        resolve(new Response(200, "Unable to Edit coupon please try again later", {
+
+      if (presentDay === "Sunday" || presentDay === "Monday" || presentDay === "Friday" || presentDay === "Saturday") {
+        resolve(new Response(200, "You can only edit coupon fron Tuesday 12:00 am to Thursday 11:59 pm", {
           success: false,
         }));
+      } else {
+        const coupon = new this.CouponModel({
+          userId: req.user._id,
+          gender: req.user.sex,
+          name: req.user.name,
+          collegeId: req.user.collegeId,
+          timestamp: createdFrom,
+          couponDownMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messdown: couponSorted.mess1,
+          }],
+          couponUpMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messup: couponSorted.mess2,
+          }],
+        });
+        try {
+          await Coupon.remove({ collegeId: req.user.collegeId }).then(() => {
+            console.log("coupon removed");
+            coupon.save().then(() => {
+              console.log("new coupon saved");
+              resolve(new Response(200, "Successfully edited coupon", {
+                success: true,
+              }));
+            });
+          });
+        } catch (err) {
+          resolve(new Response(200, "Unable to Edit coupon please try again later", {
+            success: false,
+          }));
+        }
       }
     });
     this.completeRequest(promise, res);
