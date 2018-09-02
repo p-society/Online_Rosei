@@ -1,12 +1,14 @@
-import {Document} from "mongoose";
+import { Document } from "mongoose";
 
 export interface ICoupontypeup {
   createdAt: string;
+  createdTill: string;
   messup: string;
 }
 
 export interface ICoupontypedown {
   createdAt: string;
+  createdTill: string;
   messdown: string;
 }
 

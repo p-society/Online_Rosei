@@ -1,15 +1,15 @@
 import bcrypt = require("bcrypt-nodejs");
 import * as express from "express";
 import jwt = require("jsonwebtoken");
-import {model} from "mongoose";
+import { model } from "mongoose";
+import cron = require("node-cron");
 import queryString = require("query-string");
-import {BaseRoutes, SendGridContent, SendGridEmail, SendGridMail, SendGridService} from "../classes";
-import {IUser} from "../interfaces";
-import {isAuthenticated} from "../middleware";
-import {Response} from "../models";
-import {UserSchema} from "../schemas";
-import {Config} from "../shared";
-import cron = require('node-cron');
+import { BaseRoutes, SendGridContent, SendGridEmail, SendGridMail, SendGridService } from "../classes";
+import { IUser } from "../interfaces";
+import { isAuthenticated } from "../middleware";
+import { Response } from "../models";
+import { UserSchema } from "../schemas";
+import { Config } from "../shared";
 const User = model("User", UserSchema);
 
 export interface AuthenticatedUser extends express.Request {
@@ -23,27 +23,26 @@ export class UserRoutes extends BaseRoutes {
   protected initRoutes() {
     this.router.route("/register").post((req, res) => this.registerUser(req, res));
     this.router.route("/activate").post((req, res) => this.activateUser(req, res));
-    this.router.route("/profile").get(isAuthenticated, (req: AuthenticatedUser , res) => this.profileUser(req, res));
+    this.router.route("/profile").get(isAuthenticated, (req: AuthenticatedUser, res) => this.profileUser(req, res));
     this.router.route("/setting/:id").post(isAuthenticated, (req, res) => this.settingUser(req, res));
     this.router.route("/sendActivation").post((req, res) => this.sendActivation(req, res));
     this.router.route("/forgotPassword").post((req, res) => this.forgotPassword(req, res));
 
     // check for unactivated account and delete them
-    cron.schedule('0 0 0 * * *', function(){
-      console.log('running a task every day once');
+    cron.schedule("0 0 0 * * *", function() {
+      console.log("running a task every day once");
       User.find({}).then((user: any) => {
         if (user !== null) {
-          user.forEach(async data=>{
-            if(data.active === false) {
-              console.log(user)
-              await User.remove({_id: data._id}, (err)=>{
-                if (err) throw new Error(err)
-                console.log("cleared:")
-              })
+          user.forEach(async (data) => {
+            if (data.active === false) {
+              await User.remove({ _id: data._id }, (err) => {
+                if (err) { throw new Error(err); }
+                console.log("cleared:");
+              });
             }
-          })
+          });
         }
-      })
+      });
     });
   }
 
@@ -53,7 +52,7 @@ export class UserRoutes extends BaseRoutes {
       const isnum = /^\d+$/.test(collegeNumbers);
       if ((req.body.collegeId === undefined || req.body.password === undefined || req.body.sex === undefined || req.body.name === undefined)
         || (req.body.collegeId === null || req.body.password === null || req.body.sex === null || req.body.name === null) ||
-        (req.body.collegeId === "" || req.body.password === "" || req.body.sex === "" || req.body.name === "") ) {
+        (req.body.collegeId === "" || req.body.password === "" || req.body.sex === "" || req.body.name === "")) {
         resolve(new Response(200, "Please fill all fields", {
           success: false,
         }));
@@ -67,13 +66,13 @@ export class UserRoutes extends BaseRoutes {
         }));
       } else {
         const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
-        User.findOne({collegeId: req.body.collegeId}).then((user: any) => {
+        User.findOne({ collegeId: req.body.collegeId }).then((user: any) => {
           if (user !== null) {
             resolve(new Response(200, "collegeId already in use", {
               success: false,
             }));
           } else {
-            const tokenEmailToSend = jwt.sign({data: email}, Config.secretKeys.jwtSecret, {
+            const tokenEmailToSend = jwt.sign({ data: email }, Config.secretKeys.jwtSecret, {
               expiresIn: "1h",
             });
 
@@ -85,10 +84,10 @@ export class UserRoutes extends BaseRoutes {
             const urlActivation = process.env.HOSTEDURL;
             const emailVerification = `${urlActivation}/?${queryies}`;
             const mail = new SendGridMail(
-            new SendGridEmail("verify@iiit_rosie.com"),
-            "Please verfiy your email",
-            new SendGridEmail(email),
-            new SendGridContent("text/html", `
+              new SendGridEmail("verify@iiit_rosie.com"),
+              "Please verfiy your email",
+              new SendGridEmail(email),
+              new SendGridContent("text/html", `
             <div style="background-color:#2E4053;color:#F1948A;font-style:
                 italic;width:800px;font-size:24px;padding:20px;">
                 To book coupon online you have to verify your email
@@ -112,7 +111,7 @@ export class UserRoutes extends BaseRoutes {
 
             newUser.save().then((user: IUser) => {
               this.GridService.send(mail);
-              const token = jwt.sign({id: user._id}, Config.secretKeys.jwtSecret, {
+              const token = jwt.sign({ id: user._id }, Config.secretKeys.jwtSecret, {
                 expiresIn: 86400,
               });
 
@@ -137,7 +136,7 @@ export class UserRoutes extends BaseRoutes {
       try {
         const URLEmail = escape(req.body.email);
         const URLToken = escape(req.body.tokenEmailToSend);
-        User.findOne({email: URLEmail}, {active: true}).select("tokenEmailToSend").then((user: any) => {
+        User.findOne({ email: URLEmail }, { active: true }).select("tokenEmailToSend").then((user: any) => {
           if (user === null) {
             resolve(new Response(200, "Sorry cannot verify email as no user found", {
               success: false,
@@ -152,7 +151,7 @@ export class UserRoutes extends BaseRoutes {
             }));
           } else {
             if (URLToken === user.tokenEmailToSend) {
-              User.update({email: user.email}, {$set: { active: true }}).then((user: any) => {
+              User.update({ email: user.email }, { $set: { active: true } }).then((user: any) => {
                 resolve(new Response(200, "Account activated enjoy booking coupon", {
                   success: true,
                 }));
@@ -172,7 +171,7 @@ export class UserRoutes extends BaseRoutes {
 
   private profileUser(req: AuthenticatedUser, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      this.UserModel.findOne({_id: req.user._id}).then((user) => {
+      this.UserModel.findOne({ _id: req.user._id }).then((user) => {
         if (user === null) {
           resolve(new Response(200, "Sorry no user found", {
             success: false,
@@ -191,7 +190,7 @@ export class UserRoutes extends BaseRoutes {
     this.completeRequest(promise, res);
   }
 
-  private settingUser(req: express.Request , res: express.Response) {
+  private settingUser(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       const password = escape(req.body.password);
       const confirmPassword = escape(req.body.confirmPassword);
@@ -211,14 +210,17 @@ export class UserRoutes extends BaseRoutes {
           success: false,
         }));
       }
-      this.UserModel.findOne({_id: req.params.id}).then((user: any) => {
+      this.UserModel.findOne({ _id: req.params.id }).then((user: any) => {
         if (user === null) {
           resolve(new Response(200, "Sorry no user found", {
             success: false,
           }));
         } else {
-          User.update({email: user.email}, {$set: {
-            password: bcrypt.hashSync(password, bcrypt.genSaltSync(8), null)}})
+          User.update({ email: user.email }, {
+            $set: {
+              password: bcrypt.hashSync(password, bcrypt.genSaltSync(8), null),
+            },
+          })
             .then((user: any) => {
               resolve(new Response(200, "Successfully changed settings", {
                 success: true,
@@ -240,7 +242,7 @@ export class UserRoutes extends BaseRoutes {
           success: false,
         }));
       } else {
-        this.UserModel.findOne({collegeId: req.body.collegeId}).select("verificationEmailToSend").then((user: any) => {
+        this.UserModel.findOne({ collegeId: req.body.collegeId }).select("verificationEmailToSend").then((user: any) => {
           if (user === null) {
             resolve(new Response(200, "Sorry no user found", {
               success: false,
@@ -249,10 +251,10 @@ export class UserRoutes extends BaseRoutes {
             const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
             const emailVerification = user.verificationEmailToSend;
             const mail = new SendGridMail(
-            new SendGridEmail("verify@iiit_rosie.com"),
-            "Please verfiy your email",
-            new SendGridEmail(email),
-            new SendGridContent("text/html", `
+              new SendGridEmail("verify@iiit_rosie.com"),
+              "Please verfiy your email",
+              new SendGridEmail(email),
+              new SendGridContent("text/html", `
             <div style="background-color:#2E4053;color:#F1948A;font-style:
                 italic;width:800px;font-size:24px;padding:20px;">
                 To book coupon online you have to verify your email
@@ -286,7 +288,7 @@ export class UserRoutes extends BaseRoutes {
           success: false,
         }));
       } else {
-        this.UserModel.findOne({collegeId: req.body.collegeId}).select("verificationEmailToSend password").then((user: any) => {
+        this.UserModel.findOne({ collegeId: req.body.collegeId }).select("verificationEmailToSend password").then((user: any) => {
 
           if (user === null) {
             resolve(new Response(200, "Sorry no user found", {
@@ -298,10 +300,10 @@ export class UserRoutes extends BaseRoutes {
             const pass = this.makeid();
             user.password = bcrypt.hashSync(pass, bcrypt.genSaltSync(8), null);
             const mail = new SendGridMail(
-            new SendGridEmail("verify@iiit_rosie.com"),
-            "Temporary Password for rosei",
-            new SendGridEmail(email),
-            new SendGridContent("text/html", `
+              new SendGridEmail("verify@iiit_rosie.com"),
+              "Temporary Password for rosei",
+              new SendGridEmail(email),
+              new SendGridContent("text/html", `
             <div style="background-color:#2E4053;color:#48C9B0;padding:20px;font-style:italic;width:700px;font-size:24px;">
             Hello ` + name + `
             <br/><br/>

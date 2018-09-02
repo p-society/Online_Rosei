@@ -1,4 +1,4 @@
-import {Schema} from "mongoose";
+import { Schema } from "mongoose";
 import mongoose = require("mongoose");
 
 mongoose.Promise = global.Promise;
@@ -26,6 +26,7 @@ export const CouponSchema: Schema = new Schema({
   couponDownMess: {
     type: [{
       createdAt: String,
+      createdTill: String,
       messdown: Array,
     }],
     default: [],
@@ -34,6 +35,7 @@ export const CouponSchema: Schema = new Schema({
   couponUpMess: {
     type: [{
       createdAt: String,
+      createdTill: String,
       messup: Array,
     }],
     default: [],

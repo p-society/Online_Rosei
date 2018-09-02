@@ -20,7 +20,7 @@ export class AuthRoutes extends BaseRoutes {
   private loginUser(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
       const email = (escape(req.body.collegeId) + "@iiit-bh.ac.in").toLowerCase();
-      User.findOne({ email: email }).select("password userType").then((user: any) => {
+      User.findOne({ email }).select("password userType").then((user: any) => {
         if (!user) {
           resolve(new Response(200, "No user exist", {
             success: false,
