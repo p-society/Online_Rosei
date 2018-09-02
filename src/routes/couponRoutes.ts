@@ -64,32 +64,39 @@ export class CouponRoutes extends BaseRoutes {
         createUpto = moment().add(8, "days").format("DD-MM-YYYY");
         break;
       }
-      const coupon = new this.CouponModel({
-        userId: req.user._id,
-        gender: req.user.sex,
-        name: req.user.name,
-        collegeId: req.user.collegeId,
-        timestamp: createdFrom,
-        couponDownMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messdown: couponSorted.mess1,
-        }],
-        couponUpMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messup: couponSorted.mess2,
-        }],
-      });
-      try {
-        await coupon.save();
-        resolve(new Response(200, "Successfully booked coupon", {
-          success: true,
-        }));
-      } catch (err) {
-        resolve(new Response(200, "Unable to book coupon please try again later", {
+      console.log(presentDay);
+      if (presentDay === "Sunday" || presentDay === "Monday" || presentDay === "Friday" || presentDay === "Saturday") {
+        resolve(new Response(200, "You can only book coupon fron Tuesday 12:00 am to Thursday 11:59 pm", {
           success: false,
         }));
+      } else {
+        const coupon = new this.CouponModel({
+          userId: req.user._id,
+          gender: req.user.sex,
+          name: req.user.name,
+          collegeId: req.user.collegeId,
+          timestamp: createdFrom,
+          couponDownMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messdown: couponSorted.mess1,
+          }],
+          couponUpMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messup: couponSorted.mess2,
+          }],
+        });
+        try {
+          await coupon.save();
+          resolve(new Response(200, "Successfully booked coupon", {
+            success: true,
+          }));
+        } catch (err) {
+          resolve(new Response(200, "Unable to book coupon please try again later", {
+            success: false,
+          }));
+        }
       }
     });
     this.completeRequest(promise, res);
@@ -131,37 +138,44 @@ export class CouponRoutes extends BaseRoutes {
         createUpto = moment().add(8, "days").format("DD-MM-YYYY");
         break;
       }
-      const coupon = new this.CouponModel({
-        userId: req.user._id,
-        gender: req.user.sex,
-        name: req.user.name,
-        collegeId: req.user.collegeId,
-        timestamp: createdFrom,
-        couponDownMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messdown: couponSorted.mess1,
-        }],
-        couponUpMess: [{
-          createdAt: createdFrom,
-          createdTill: createUpto,
-          messup: couponSorted.mess2,
-        }],
-      });
-      try {
-        await Coupon.remove({ collegeId: req.user.collegeId }).then(() => {
-          console.log("coupon removed");
-          coupon.save().then(() => {
-            console.log("new coupon saved");
-            resolve(new Response(200, "Successfully edited coupon", {
-              success: true,
-            }));
-          });
-        });
-      } catch (err) {
-        resolve(new Response(200, "Unable to Edit coupon please try again later", {
+
+      if (presentDay === "Sunday" || presentDay === "Monday" || presentDay === "Friday" || presentDay === "Saturday") {
+        resolve(new Response(200, "You can only edit coupon fron Tuesday 12:00 am to Thursday 11:59 pm", {
           success: false,
         }));
+      } else {
+        const coupon = new this.CouponModel({
+          userId: req.user._id,
+          gender: req.user.sex,
+          name: req.user.name,
+          collegeId: req.user.collegeId,
+          timestamp: createdFrom,
+          couponDownMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messdown: couponSorted.mess1,
+          }],
+          couponUpMess: [{
+            createdAt: createdFrom,
+            createdTill: createUpto,
+            messup: couponSorted.mess2,
+          }],
+        });
+        try {
+          await Coupon.remove({ collegeId: req.user.collegeId }).then(() => {
+            console.log("coupon removed");
+            coupon.save().then(() => {
+              console.log("new coupon saved");
+              resolve(new Response(200, "Successfully edited coupon", {
+                success: true,
+              }));
+            });
+          });
+        } catch (err) {
+          resolve(new Response(200, "Unable to Edit coupon please try again later", {
+            success: false,
+          }));
+        }
       }
     });
     this.completeRequest(promise, res);
