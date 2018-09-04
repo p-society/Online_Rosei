@@ -1,14 +1,14 @@
 import * as express from "express";
 import jwt = require("jsonwebtoken");
-import {model} from "mongoose";
-import {BaseRoutes} from "../classes";
-import {IAdmin, ICoupon, IUser, MessElement} from "../interfaces";
-import {isAdminOrUser} from "../middleware";
-import {Response} from "../models";
-import {AdminSchema, CouponSchema, UserSchema} from "../schemas";
-import {Config} from "../shared";
-import cron = require('node-cron');
-import moment = require('moment');
+import moment = require("moment");
+import { model } from "mongoose";
+import cron = require("node-cron");
+import { BaseRoutes } from "../classes";
+import { IAdmin, ICoupon, IUser, MessElement } from "../interfaces";
+import { isAdminOrUser } from "../middleware";
+import { Response } from "../models";
+import { AdminSchema, CouponSchema, UserSchema } from "../schemas";
+import { Config } from "../shared";
 
 const Admin = model("Admin", AdminSchema);
 const User = model("User", UserSchema);
@@ -29,7 +29,7 @@ export class AdminRoutes extends BaseRoutes {
     this.router.route("/mess2/all/:id").get(isAdminOrUser, (req: Authenticated, res) => this.getUsersForUpperMess(req, res));
     this.router.route("/god/:id").post((req, res) => this.dropCollection(req, res));
 
-    //Clean Database every Monday
+    // Clean Database every Monday
     const presentDay = moment().utcOffset("+05:30").format("dddd");
     if (presentDay === "Monday") {
       cron.schedule("0 0 0 * * Monday", () => {
@@ -38,13 +38,12 @@ export class AdminRoutes extends BaseRoutes {
           if (coupon.length !== 0) {
             Coupon.collection.drop();
             console.log("Database Deleted");
-          }
-          else {
-            console.log("Already deleted database")
+          } else {
+            console.log("Already deleted database");
           }
         });
       });
-    }  
+    }
   }
 
   private loginAdmin(req: express.Request, res: express.Response) {
@@ -84,8 +83,8 @@ export class AdminRoutes extends BaseRoutes {
 
   private getUsersForGroundMess(req: Authenticated, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      Admin.findOne({_id: req.user._id}).then((admin: any) => {
-        Coupon.find().select("couponDownMess").sort({gender: "ascending"}).then((users: any) => {
+      Admin.findOne({ _id: req.user._id }).then((admin: any) => {
+        Coupon.find().select("couponDownMess").sort({ collegeId: "ascending" }).then((users: any) => {
           resolve(new Response(200, "Successful response", {
             success: true,
             users,
@@ -101,8 +100,8 @@ export class AdminRoutes extends BaseRoutes {
 
   private getUsersForUpperMess(req: Authenticated, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      Admin.findOne({_id: req.user._id}).then((admin: any) => {
-        Coupon.find().select("couponUpMess").sort({gender: "ascending"}).then((users: any) => {
+      Admin.findOne({ _id: req.user._id }).then((admin: any) => {
+        Coupon.find().select("couponUpMess").sort({ collegeId: "ascending" }).then((users: any) => {
           resolve(new Response(200, "Successful response", {
             success: true,
             users,
@@ -118,7 +117,7 @@ export class AdminRoutes extends BaseRoutes {
 
   private dropCollection(req: express.Request, res: express.Response) {
     const promise: Promise<Response> = new Promise<Response>((resolve, reject) => {
-      Admin.findOne({_id: req.params.id}).then((admin: any) => {
+      Admin.findOne({ _id: req.params.id }).then((admin: any) => {
         if (admin.messType !== "god") {
           resolve(new Response(200, "Sorry you cannot act god", {
             success: false,

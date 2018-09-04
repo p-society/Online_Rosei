@@ -17,6 +17,8 @@
   "license": "MIT",
   "dependencies": {
     "@types/dotenv": "^4.0.3",
+    "@types/jsonwebtoken": "^7.2.8",
+    "@types/node-cron": "^1.2.0",
     "bcrypt-nodejs": "0.0.3",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.3",
